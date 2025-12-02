@@ -43,6 +43,12 @@ export const laCountyAddresses = [
   '654 Maple Dr, Santa Monica, CA 90401'
 ];
 
+export interface OfficialResource {
+  name: string;
+  url: string;
+  type: 'government' | 'utility' | 'program';
+}
+
 export const generateMockOpportunities = (property: PropertyData): SavingsOpportunity[] => {
   const opportunities: SavingsOpportunity[] = [];
 
@@ -71,7 +77,12 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
       'LADWP: (800) 342-5397',
       'Document current utility bills for comparison'
     ],
-    methodology: 'Free energy audits identify an average of $300-500/year in savings opportunities. This is the foundation for measuring and managing your home\'s energy performance.'
+    methodology: 'Free energy audits identify an average of $300-500/year in savings opportunities. This is the foundation for measuring and managing your home\'s energy performance.',
+    officialResources: [
+      { name: 'Pasadena Water & Power Energy Programs', url: 'https://www.cityofpasadena.net/water-and-power/energy-efficiency/', type: 'utility' },
+      { name: 'LADWP Energy Efficiency Programs', url: 'https://www.ladwp.com/ladwp/faces/ladwp/residential/r-savemoney/r-sm-rebatesandprograms', type: 'utility' },
+      { name: 'California Energy Commission', url: 'https://www.energy.ca.gov/programs-and-topics/programs/energy-efficiency', type: 'government' }
+    ]
   });
 
   // Water Conservation Kit
@@ -97,7 +108,12 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
       'Compare next water bill to establish baseline savings',
       'Track monthly water usage to measure impact'
     ],
-    methodology: 'Metropolitan Water District provides free conservation kits. Average household saves 120 gallons/month = $120/year. What gets measured gets managed - track your water bills monthly.'
+    methodology: 'Metropolitan Water District provides free conservation kits. Average household saves 120 gallons/month = $120/year. What gets measured gets managed - track your water bills monthly.',
+    officialResources: [
+      { name: 'SoCal Water$mart (Metropolitan Water District)', url: 'https://www.bewaterwise.com/', type: 'utility' },
+      { name: 'LA County Water Conservation', url: 'https://dpw.lacounty.gov/wwd/web/Conservation/', type: 'government' },
+      { name: 'California Water Service', url: 'https://www.calwater.com/conservation/', type: 'utility' }
+    ]
   });
 
   // LED Lighting Conversion
@@ -123,7 +139,11 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
       'Note your current electric bill before conversion',
       'Track monthly electric bills to measure savings'
     ],
-    methodology: 'Converting 10 high-use bulbs saves ~$150/year. Start small, measure impact, then expand. Track your electric bill monthly to see the difference.'
+    methodology: 'Converting 10 high-use bulbs saves ~$150/year. Start small, measure impact, then expand. Track your electric bill monthly to see the difference.',
+    officialResources: [
+      { name: 'ENERGY STAR Lighting Guide', url: 'https://www.energystar.gov/products/lighting_fans', type: 'government' },
+      { name: 'California Energy Commission - Lighting', url: 'https://www.energy.ca.gov/programs-and-topics/programs/appliance-efficiency-program/lighting', type: 'government' }
+    ]
   });
 
   // Smart Power Strips
@@ -149,7 +169,11 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
       'Note current monthly electric usage',
       'Compare bills after 1 month to measure savings'
     ],
-    methodology: 'Phantom load accounts for 5-10% of home electricity use. Smart power strips eliminate this waste. Average savings: $100/year. Track monthly to verify.'
+    methodology: 'Phantom load accounts for 5-10% of home electricity use. Smart power strips eliminate this waste. Average savings: $100/year. Track monthly to verify.',
+    officialResources: [
+      { name: 'U.S. Department of Energy - Standby Power', url: 'https://www.energy.gov/energysaver/articles/standby-power-and-how-reduce-it', type: 'government' },
+      { name: 'ENERGY STAR Smart Power Strips', url: 'https://www.energystar.gov/products/smart_power_strips', type: 'government' }
+    ]
   });
 
   // Weatherization Program
@@ -175,7 +199,12 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
       'Schedule home assessment if qualified',
       'Track utility bills before and after to measure impact'
     ],
-    methodology: 'LA County Weatherization Program provides free upgrades to eligible households. Average savings: $400/year. Document your baseline energy use to measure the improvement.'
+    methodology: 'LA County Weatherization Program provides free upgrades to eligible households. Average savings: $400/year. Document your baseline energy use to measure the improvement.',
+    officialResources: [
+      { name: 'LA County Weatherization Program', url: 'https://dcba.lacounty.gov/weatherization/', type: 'government' },
+      { name: 'California Department of Community Services - Weatherization', url: 'https://www.csd.ca.gov/Pages/WeatherizationProgram.aspx', type: 'government' },
+      { name: 'U.S. Department of Energy - Weatherization', url: 'https://www.energy.gov/scep/wap/weatherization-assistance-program', type: 'government' }
+    ]
   });
 
   // MEDIUM-COST OPPORTUNITIES
@@ -205,7 +234,11 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
       'Install thermostat and connect to app',
       'Monitor daily/weekly energy reports to track savings'
     ],
-    methodology: 'Smart thermostats reduce HVAC costs by 12% average. Net cost after rebate: $125-150. Payback in 8-10 months. Built-in tracking helps you measure and manage energy use.'
+    methodology: 'Smart thermostats reduce HVAC costs by 12% average. Net cost after rebate: $125-150. Payback in 8-10 months. Built-in tracking helps you measure and manage energy use.',
+    officialResources: [
+      { name: 'SoCalGas Rebates & Incentives', url: 'https://socalgas.com/save-money-and-energy/rebates-and-incentives', type: 'utility' },
+      { name: 'ENERGY STAR Smart Thermostats', url: 'https://www.energystar.gov/products/smart_thermostats', type: 'government' }
+    ]
   });
 
   // Water-Efficient Landscaping Rebate
@@ -216,7 +249,7 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
     annualSavings: 300,
     upfrontCost: { min: 500, max: 1500 },
     rebates: [
-      { name: 'SoCal Water$mart Turf Replacement', amount: 2, link: 'https://socalwatersmart.com/turf-replacement' }
+      { name: 'SoCal Water$mart Turf Replacement ($2/sqft)', amount: 1000, link: 'https://socalwatersmart.com/turf-replacement' }
     ],
     paybackMonths: 12,
     difficulty: 'Professional',
@@ -233,7 +266,12 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
       'Get quotes from certified landscapers',
       'Track water bills monthly to measure savings'
     ],
-    methodology: 'Outdoor watering accounts for 50% of residential water use. Rebate covers most conversion costs. Average 500 sqft removal = $1,000 rebate. Saves $300/year in water costs. Track monthly bills to verify.'
+    methodology: 'Outdoor watering accounts for 50% of residential water use. Rebate covers most conversion costs. Average 500 sqft removal = $1,000 rebate. Saves $300/year in water costs. Track monthly bills to verify.',
+    officialResources: [
+      { name: 'SoCal Water$mart Turf Replacement Program', url: 'https://socalwatersmart.com/turf-replacement/', type: 'program' },
+      { name: 'Metropolitan Water District Rebates', url: 'https://www.mwdh2o.com/rebates/', type: 'utility' },
+      { name: 'California Water-Efficient Landscape Ordinance', url: 'https://water.ca.gov/Programs/Water-Use-And-Efficiency/Urban-Water-Use-Efficiency/Model-Water-Efficient-Landscape-Ordinance', type: 'government' }
+    ]
   });
 
   // Attic Insulation Upgrade
@@ -262,7 +300,12 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
         'Apply for SoCalGas rebate before installation',
         'Track monthly utility bills to measure ROI'
       ],
-      methodology: 'Homes built before 1980 typically have R-11 or less insulation. Upgrading to R-38 saves $420/year average. Net cost after rebate: $600-1,900. Track heating/cooling costs monthly to verify savings.'
+      methodology: 'Homes built before 1980 typically have R-11 or less insulation. Upgrading to R-38 saves $420/year average. Net cost after rebate: $600-1,900. Track heating/cooling costs monthly to verify savings.',
+      officialResources: [
+        { name: 'SoCalGas Energy Efficiency Programs', url: 'https://socalgas.com/save-money-and-energy/rebates-and-incentives', type: 'utility' },
+        { name: 'California Energy Commission - Insulation', url: 'https://www.energy.ca.gov/programs-and-topics/programs/building-energy-efficiency-standards', type: 'government' },
+        { name: 'U.S. Department of Energy - Insulation', url: 'https://www.energy.gov/energysaver/insulation', type: 'government' }
+      ]
     });
   }
 
@@ -295,7 +338,13 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
         'Apply for SGIP battery incentive (limited funds)',
         'Use monitoring app to track daily production and savings'
       ],
-      methodology: 'Solar feasibility score: 85/100. Average LA County electric bill: $200/month. 6kW system costs $15,000-25,000. After 30% tax credit: $10,500-17,500. Payback: 4-6 years. Built-in monitoring lets you track every kWh produced.'
+      methodology: 'Solar feasibility score: 85/100. Average LA County electric bill: $200/month. 6kW system costs $15,000-25,000. After 30% tax credit: $10,500-17,500. Payback: 4-6 years. Built-in monitoring lets you track every kWh produced.',
+      officialResources: [
+        { name: 'U.S. Department of Energy - Solar Tax Credit', url: 'https://www.energy.gov/eere/solar/homeowners-guide-federal-tax-credit-solar-photovoltaics', type: 'government' },
+        { name: 'California SGIP (Self-Generation Incentive Program)', url: 'https://www.selfgenca.com/', type: 'program' },
+        { name: 'Go Solar California', url: 'https://www.gosolarcalifornia.org/', type: 'government' },
+        { name: 'EnergySage Solar Marketplace', url: 'https://www.energysage.com/', type: 'program' }
+      ]
     });
   }
 
@@ -325,7 +374,12 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
       'Apply for rebates before installation',
       'Compare gas/electric bills monthly to measure savings'
     ],
-    methodology: 'Water heating accounts for 18% of home energy use. Heat pump water heaters save $350/year average. Net cost after $600 rebates: $600-1,900. Payback: 2-5 years. Track monthly utility costs to verify.'
+    methodology: 'Water heating accounts for 18% of home energy use. Heat pump water heaters save $350/year average. Net cost after $600 rebates: $600-1,900. Payback: 2-5 years. Track monthly utility costs to verify.',
+    officialResources: [
+      { name: 'SoCalGas Water Heater Rebates', url: 'https://socalgas.com/save-money-and-energy/rebates-and-incentives', type: 'utility' },
+      { name: 'ENERGY STAR Water Heaters', url: 'https://www.energystar.gov/products/water_heaters', type: 'government' },
+      { name: 'Federal Tax Credits for Energy Efficiency', url: 'https://www.energystar.gov/about/federal_tax_credits', type: 'government' }
+    ]
   });
 
   // Window Replacement
@@ -354,7 +408,12 @@ export const generateMockOpportunities = (property: PropertyData): SavingsOpport
         'Consider phased approach (worst windows first)',
         'Track heating/cooling costs to measure impact'
       ],
-      methodology: 'Homes built before 1990 typically have single-pane windows. Upgrading to double-pane saves $300/year. Net cost after tax credit: $2,400-7,400. Long payback but measurable comfort improvement. Track seasonal utility costs.'
+      methodology: 'Homes built before 1990 typically have single-pane windows. Upgrading to double-pane saves $300/year. Net cost after tax credit: $2,400-7,400. Long payback but measurable comfort improvement. Track seasonal utility costs.',
+      officialResources: [
+        { name: 'ENERGY STAR Windows & Doors', url: 'https://www.energystar.gov/products/building_products/residential_windows_doors_and_skylights', type: 'government' },
+        { name: 'Federal Tax Credits for Energy Efficiency', url: 'https://www.energystar.gov/about/federal_tax_credits', type: 'government' },
+        { name: 'California Energy Commission - Windows', url: 'https://www.energy.ca.gov/programs-and-topics/programs/building-energy-efficiency-standards', type: 'government' }
+      ]
     });
   }
 

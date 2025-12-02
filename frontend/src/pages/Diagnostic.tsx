@@ -66,6 +66,20 @@ const Diagnostic = () => {
     }
   }
 
+  // Sort by quick wins: free first, then by payback period
+  const sortedOpportunities = [...filteredOpportunities].sort((a, b) => {
+    // Free opportunities first
+    if (a.upfrontCost.max === 0 && b.upfrontCost.max !== 0) return -1;
+    if (a.upfrontCost.max !== 0 && b.upfrontCost.max === 0) return 1;
+    
+    // Then sort by payback period (shorter is better)
+    if (a.upfrontCost.max === 0 && b.upfrontCost.max === 0) {
+      return b.annualSavings - a.annualSavings; // Higher savings first for free items
+    }
+    
+    return a.paybackMonths - b.paybackMonths;
+  });
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -73,12 +87,6 @@ const Diagnostic = () => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value);
-  };
-
-  const getConfidenceColor = (score: number) => {
-    if (score >= 90) return 'text-green-600';
-    if (score >= 70) return 'text-yellow-600';
-    return 'text-orange-600';
   };
 
   const getCostTierBadge = (opp: SavingsOpportunity) => {
@@ -113,7 +121,7 @@ const Diagnostic = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Available Programs & Rebates</h2>
           <p className="text-gray-600">{propertyData.address}</p>
           <p className="text-sm text-blue-600 mt-2 font-medium">
-            Prioritized by cost: Start free, then scale up as you measure results
+            Sorted by quick wins: Free programs first, then by fastest payback
           </p>
         </div>
 
@@ -194,7 +202,7 @@ const Diagnostic = () => {
 
         {/* Opportunities List */}
         <div className="space-y-4 mb-8">
-          {filteredOpportunities.map((opportunity) => (
+          {sortedOpportunities.map((opportunity) => (
             <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
               <Collapsible>
                 <CardHeader>
@@ -204,9 +212,6 @@ const Diagnostic = () => {
                         <span className="text-2xl">{categoryIcons[opportunity.category]}</span>
                         {getCostTierBadge(opportunity)}
                         <Badge variant="outline">{categoryNames[opportunity.category]}</Badge>
-                        <Badge className={getConfidenceColor(opportunity.confidenceScore)}>
-                          {opportunity.confidenceScore}% confidence
-                        </Badge>
                       </div>
                       <CardTitle className="text-xl mb-2">{opportunity.name}</CardTitle>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -253,6 +258,7 @@ const Diagnostic = () => {
                         <TabsTrigger value="benefits">Why This Matters</TabsTrigger>
                         <TabsTrigger value="steps">Action Steps</TabsTrigger>
                         <TabsTrigger value="rebates">Programs & Rebates</TabsTrigger>
+                        <TabsTrigger value="resources">Official Resources</TabsTrigger>
                         <TabsTrigger value="tracking">How to Track</TabsTrigger>
                       </TabsList>
 
@@ -298,6 +304,40 @@ const Diagnostic = () => {
                               <strong>No rebates needed!</strong> This is a free program or service available to all LA County residents.
                             </p>
                           </div>
+                        )}
+                      </TabsContent>
+
+                      <TabsContent value="resources">
+                        {opportunity.officialResources && opportunity.officialResources.length > 0 ? (
+                          <div className="space-y-3">
+                            <p className="text-sm text-gray-600 mb-3">
+                              Official government, utility, and program resources:
+                            </p>
+                            {opportunity.officialResources.map((resource, idx) => (
+                              <div key={idx} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-gray-900 mb-1">{resource.name}</p>
+                                    <Badge variant="outline" className="text-xs">
+                                      {resource.type === 'government' && '🏛️ Government'}
+                                      {resource.type === 'utility' && '⚡ Utility'}
+                                      {resource.type === 'program' && '📋 Program'}
+                                    </Badge>
+                                  </div>
+                                  <a
+                                    href={resource.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm whitespace-nowrap"
+                                  >
+                                    Visit Site <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-500 text-sm">No additional resources available for this opportunity.</p>
                         )}
                       </TabsContent>
 

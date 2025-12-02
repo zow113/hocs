@@ -15,6 +15,12 @@ export interface PropertyData {
   permitHistory: string[];
 }
 
+export interface OfficialResource {
+  name: string;
+  url: string;
+  type: 'government' | 'utility' | 'program';
+}
+
 export interface SavingsOpportunity {
   id: string;
   category: 'energy' | 'solar' | 'water' | 'maintenance';
@@ -28,6 +34,7 @@ export interface SavingsOpportunity {
   benefits: string[];
   nextSteps: string[];
   methodology: string;
+  officialResources?: OfficialResource[];
 }
 
 export interface PrioritizedPlan {
