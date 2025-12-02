@@ -1,21 +1,27 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Download, X, RotateCcw, Mail, CheckCircle2 } from 'lucide-react';
+import { Home, Download, Mail, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useProperty } from '@/context/PropertyContext';
-import { SavingsOpportunity, PrioritizedPlan as PrioritizedPlanType } from '@/types/property';
+import { SavingsOpportunity } from '@/types/property';
 import { toast } from 'sonner';
+
+interface TierGroup {
+  tier: number;
+  title: string;
+  description: string;
+  opportunities: SavingsOpportunity[];
+  color: string;
+}
 
 const Plan = () => {
   const navigate = useNavigate();
-  const { propertyData, opportunities, prioritizedPlan, setPrioritizedPlan, resetSession } = useProperty();
-  const [topOpportunities, setTopOpportunities] = useState<SavingsOpportunity[]>([]);
-  const [secondaryOpportunities, setSecondaryOpportunities] = useState<SavingsOpportunity[]>([]);
-  const [customized, setCustomized] = useState(false);
+  const { propertyData, opportunities, resetSession } = useProperty();
+  const [tiers, setTiers] = useState<TierGroup[]>([]);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [email, setEmail] = useState('');
 
@@ -25,45 +31,87 @@ const Plan = () => {
       return;
     }
 
-    // Generate prioritized plan if not already created
-    // NEW PRIORITIZATION: Cost tier first, then impact within tier
-    if (!prioritizedPlan) {
-      const scored = opportunities.map(opp => {
-        // Assign tier score (higher = better priority)
-        let tierScore = 0;
-        if (opp.upfrontCost.max === 0) tierScore = 1000; // Free = highest priority
-        else if (opp.upfrontCost.max <= 500) tierScore = 800; // Low cost
-        else if (opp.upfrontCost.max <= 2500) tierScore = 600; // Medium cost
-        else tierScore = 400; // Investment
+    // Organize opportunities into 5 tiers
+    const tier1: SavingsOpportunity[] = []; // Instant visibility (free tracking)
+    const tier2: SavingsOpportunity[] = []; // Free diagnostics and assistance
+    const tier3: SavingsOpportunity[] = []; // Low-cost behavior changes
+    const tier4: SavingsOpportunity[] = []; // Medium-cost upgrades
+    const tier5: SavingsOpportunity[] = []; // Major projects
 
-        // Within tier, prioritize by annual savings and confidence
-        const impactScore = (opp.annualSavings * 0.7) + (opp.confidenceScore * 0.3);
-        
-        return {
-          ...opp,
-          score: tierScore + impactScore
-        };
-      }).sort((a, b) => b.score - a.score);
+    opportunities.forEach(opp => {
+      // Tier 1: Free tracking/monitoring (none in current data, but we'll add instructions)
+      // Tier 2: Free programs and audits
+      if (opp.upfrontCost.max === 0 && (
+        opp.name.toLowerCase().includes('audit') ||
+        opp.name.toLowerCase().includes('weatherization') ||
+        opp.name.toLowerCase().includes('assistance')
+      )) {
+        tier2.push(opp);
+      }
+      // Tier 3: Free or very low cost behavior changes
+      else if (opp.upfrontCost.max <= 200 && (
+        opp.name.toLowerCase().includes('water conservation kit') ||
+        opp.name.toLowerCase().includes('led') ||
+        opp.name.toLowerCase().includes('power strip')
+      )) {
+        tier3.push(opp);
+      }
+      // Tier 4: Low to medium cost upgrades
+      else if (opp.upfrontCost.max > 200 && opp.upfrontCost.max <= 3000) {
+        tier4.push(opp);
+      }
+      // Tier 5: Major investments
+      else if (opp.upfrontCost.max > 3000) {
+        tier5.push(opp);
+      }
+      // Default: put remaining free items in tier 2
+      else if (opp.upfrontCost.max === 0) {
+        tier2.push(opp);
+      }
+      // Everything else goes to tier 4
+      else {
+        tier4.push(opp);
+      }
+    });
 
-      const top = scored.slice(0, 5);
-      const secondary = scored.slice(5);
-
-      const plan: PrioritizedPlanType = {
-        topOpportunities: top,
-        secondaryOpportunities: secondary,
-        totalAnnualSavings: top.reduce((sum, opp) => sum + opp.annualSavings, 0),
-        customized: false
-      };
-
-      setPrioritizedPlan(plan);
-      setTopOpportunities(top);
-      setSecondaryOpportunities(secondary);
-    } else {
-      setTopOpportunities(prioritizedPlan.topOpportunities);
-      setSecondaryOpportunities(prioritizedPlan.secondaryOpportunities);
-      setCustomized(prioritizedPlan.customized);
-    }
-  }, [propertyData, opportunities, prioritizedPlan, setPrioritizedPlan, navigate]);
+    setTiers([
+      {
+        tier: 1,
+        title: 'Instant Visibility (Near-Zero Cost)',
+        description: 'Set up tracking and establish your baseline. You can\'t manage what you don\'t measure.',
+        opportunities: tier1,
+        color: 'bg-green-50 border-green-200'
+      },
+      {
+        tier: 2,
+        title: 'Free In-Home Checks & Diagnostics',
+        description: 'Get professional assessments and qualify for free upgrades at no cost.',
+        opportunities: tier2,
+        color: 'bg-blue-50 border-blue-200'
+      },
+      {
+        tier: 3,
+        title: 'Data-Driven Behavior & Low-Cost Controls',
+        description: 'Use your baseline data to make smart, low-cost changes with immediate impact.',
+        opportunities: tier3,
+        color: 'bg-yellow-50 border-yellow-200'
+      },
+      {
+        tier: 4,
+        title: 'Targeted Low/Medium-Cost Upgrades',
+        description: 'Invest in upgrades that your data shows will have the best ROI.',
+        opportunities: tier4,
+        color: 'bg-orange-50 border-orange-200'
+      },
+      {
+        tier: 5,
+        title: 'Major Projects Informed by Data',
+        description: 'After 3-6 months of tracking, consider major investments with proven payback.',
+        opportunities: tier5,
+        color: 'bg-purple-50 border-purple-200'
+      }
+    ]);
+  }, [propertyData, opportunities, navigate]);
 
   if (!propertyData) return null;
 
@@ -76,86 +124,25 @@ const Plan = () => {
     }).format(value);
   };
 
-  const handleRemoveOpportunity = (id: string) => {
-    const removed = topOpportunities.find(opp => opp.id === id);
-    if (!removed) return;
-
-    const newTop = topOpportunities.filter(opp => opp.id !== id);
-    
-    if (secondaryOpportunities.length > 0) {
-      const promoted = secondaryOpportunities[0];
-      newTop.push(promoted);
-      setSecondaryOpportunities(secondaryOpportunities.slice(1));
-    }
-
-    setTopOpportunities(newTop);
-    setCustomized(true);
-
-    const plan: PrioritizedPlanType = {
-      topOpportunities: newTop,
-      secondaryOpportunities,
-      totalAnnualSavings: newTop.reduce((sum, opp) => sum + opp.annualSavings, 0),
-      customized: true
-    };
-    setPrioritizedPlan(plan);
-
-    toast.success('Plan updated');
-  };
-
-  const handleReset = () => {
-    const scored = opportunities.map(opp => {
-      let tierScore = 0;
-      if (opp.upfrontCost.max === 0) tierScore = 1000;
-      else if (opp.upfrontCost.max <= 500) tierScore = 800;
-      else if (opp.upfrontCost.max <= 2500) tierScore = 600;
-      else tierScore = 400;
-
-      const impactScore = (opp.annualSavings * 0.7) + (opp.confidenceScore * 0.3);
-      
-      return {
-        ...opp,
-        score: tierScore + impactScore
-      };
-    }).sort((a, b) => b.score - a.score);
-
-    const top = scored.slice(0, 5);
-    const secondary = scored.slice(5);
-
-    setTopOpportunities(top);
-    setSecondaryOpportunities(secondary);
-    setCustomized(false);
-
-    const plan: PrioritizedPlanType = {
-      topOpportunities: top,
-      secondaryOpportunities: secondary,
-      totalAnnualSavings: top.reduce((sum, opp) => sum + opp.annualSavings, 0),
-      customized: false
-    };
-    setPrioritizedPlan(plan);
-
-    toast.success('Plan reset to recommended order');
-  };
-
   const handleEmailReport = () => {
     if (!email || !email.includes('@')) {
       toast.error('Please enter a valid email address');
       return;
     }
 
-    toast.success(`Report will be sent to ${email} within 1 minute`);
+    toast.success(`Action plan will be sent to ${email} within 1 minute`);
     setEmailDialogOpen(false);
     setEmail('');
   };
 
   const handleDownloadPDF = () => {
-    toast.success('PDF report is being generated...');
+    toast.success('PDF action plan is being generated...');
     setTimeout(() => {
       toast.success('PDF downloaded successfully!');
     }, 2000);
   };
 
-  const totalSavings = topOpportunities.reduce((sum, opp) => sum + opp.annualSavings, 0);
-  const freeActions = topOpportunities.filter(opp => opp.upfrontCost.max === 0).length;
+  const totalPotentialSavings = opportunities.reduce((sum, opp) => sum + opp.annualSavings, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -177,22 +164,11 @@ const Plan = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-3xl font-bold text-gray-900">Your Action Plan</h2>
-            {customized && (
-              <Button variant="outline" size="sm" onClick={handleReset}>
-                <RotateCcw className="w-4 h-4 mr-2" />
-                Reset to Recommended
-              </Button>
-            )}
-          </div>
-          <p className="text-gray-600">{propertyData.address}</p>
-          <p className="text-sm text-blue-600 mt-2 font-medium">
-            Start with {freeActions} free action{freeActions !== 1 ? 's' : ''}, then scale up as you track results
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Visibility-First Action Plan</h2>
+          <p className="text-gray-600 mb-4">{propertyData.address}</p>
+          <p className="text-sm text-gray-700">
+            Follow this crawl-walk-run approach: Start with Tier 1 to establish visibility, then work through each tier sequentially. Complete one tier before moving to the next.
           </p>
-          {customized && (
-            <Badge variant="secondary" className="mt-2">Customized Plan</Badge>
-          )}
         </div>
 
         {/* Summary Card */}
@@ -200,153 +176,164 @@ const Plan = () => {
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-lg text-gray-700 mb-2">Total Potential Annual Savings</p>
-              <p className="text-5xl font-bold text-green-600 mb-4">{formatCurrency(totalSavings)}</p>
-              <p className="text-gray-600 mb-4">
-                If you complete all top 5 recommendations
+              <p className="text-5xl font-bold text-green-600 mb-4">{formatCurrency(totalPotentialSavings)}</p>
+              <p className="text-gray-600">
+                If you complete all recommended actions across all tiers
               </p>
-              <div className="flex justify-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <span className="font-medium">{freeActions} Free Actions</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium">{5 - freeActions} Low-Cost Actions</span>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Measurement Reminder */}
-        <Card className="mb-8 bg-blue-50 border-blue-200">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <div className="text-3xl">📊</div>
+        {/* Tier 1: Special Instructions */}
+        <Card className="mb-6 bg-green-50 border-green-200">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold">
+                1
+              </div>
               <div>
-                <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                  "What Gets Measured, Gets Managed"
-                </h3>
-                <p className="text-gray-700 text-sm mb-3">
-                  For each action below, we've included specific tracking recommendations. Document your baseline before starting, then monitor monthly to measure your actual savings.
+                <CardTitle className="text-xl">Tier 1: Instant Visibility (Near-Zero Cost)</CardTitle>
+                <p className="text-sm text-gray-600 mt-1">
+                  Set up tracking and establish your baseline. You can't manage what you don't measure.
                 </p>
-                <ul className="text-sm text-gray-700 space-y-1">
-                  <li>✓ Save your current utility bills as baseline</li>
-                  <li>✓ Note the date you complete each action</li>
-                  <li>✓ Track monthly bills for 3-6 months</li>
-                  <li>✓ Calculate your actual ROI</li>
-                </ul>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 bg-white rounded-lg border border-green-200">
+                <h4 className="font-semibold text-gray-900 mb-3">📊 Action Steps:</h4>
+                <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
+                  <li>
+                    <strong>Set up your utility portals:</strong>
+                    <ul className="list-disc list-inside ml-6 mt-1 space-y-1">
+                      <li>LADWP account: <a href="https://www.ladwp.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">ladwp.com</a> (electricity & water)</li>
+                      <li>SoCalGas account: <a href="https://www.socalgas.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">socalgas.com</a> (natural gas)</li>
+                      <li>Pasadena Water & Power: <a href="https://www.cityofpasadena.net/water-and-power/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">cityofpasadena.net/water-and-power</a></li>
+                    </ul>
+                  </li>
+                  <li><strong>Download the last 12 months of bills</strong> (if available) to establish your baseline usage and costs</li>
+                  <li><strong>Create a simple tracking spreadsheet</strong> with columns for: Date, Electric Bill, Gas Bill, Water Bill, Total</li>
+                  <li><strong>Note your current monthly averages</strong> before making any changes</li>
+                </ol>
+              </div>
+              <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                <p className="text-sm text-gray-700">
+                  <strong>Why this matters:</strong> This baseline data will help you measure the actual impact of every change you make. Spend 30-60 minutes on this step before moving to Tier 2.
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Top 5 Opportunities */}
-        <div className="mb-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Your Top 5 Priorities</h3>
-          <div className="space-y-4">
-            {topOpportunities.map((opportunity, index) => (
-              <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold">
-                        {index + 1}
-                      </div>
-                    </div>
-                    <div className="flex-1">
+        {/* Remaining Tiers */}
+        {tiers.slice(1).map((tierGroup) => (
+          <Card key={tierGroup.tier} className={`mb-6 ${tierGroup.color}`}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center font-bold">
+                  {tierGroup.tier}
+                </div>
+                <div>
+                  <CardTitle className="text-xl">{tierGroup.title}</CardTitle>
+                  <p className="text-sm text-gray-600 mt-1">{tierGroup.description}</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {tierGroup.opportunities.length > 0 ? (
+                <div className="space-y-3">
+                  {tierGroup.opportunities.map((opportunity, index) => (
+                    <div key={opportunity.id} className="p-4 bg-white rounded-lg border border-gray-200">
                       <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <CardTitle className="text-xl mb-2">{opportunity.name}</CardTitle>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <CheckCircle2 className="w-5 h-5 text-green-600" />
+                            <h4 className="font-semibold text-gray-900">{opportunity.name}</h4>
+                          </div>
                           {opportunity.upfrontCost.max === 0 && (
-                            <Badge className="bg-green-500 mb-2">FREE - Start Here!</Badge>
+                            <Badge className="bg-green-500 mb-2">FREE</Badge>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveOpportunity(opportunity.id)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                        <div>
+                        <div className="text-right">
                           <p className="text-sm text-gray-600">Annual Savings</p>
-                          <p className="text-2xl font-bold text-green-600">
+                          <p className="text-xl font-bold text-green-600">
                             {formatCurrency(opportunity.annualSavings)}
                           </p>
                         </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
                         <div>
-                          <p className="text-sm text-gray-600">Your Cost</p>
-                          <p className="font-semibold">
+                          <span className="text-gray-600">Your Cost: </span>
+                          <span className="font-semibold">
                             {opportunity.upfrontCost.max === 0 
-                              ? 'FREE' 
-                              : `${formatCurrency(opportunity.upfrontCost.min)} - ${formatCurrency(opportunity.upfrontCost.max)}`}
-                          </p>
+                              ? '$0' 
+                              : `${formatCurrency(opportunity.upfrontCost.min)}–${formatCurrency(opportunity.upfrontCost.max)}`}
+                          </span>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600">Difficulty</p>
+                          <span className="text-gray-600">Effort: </span>
                           <Badge variant="secondary">{opportunity.difficulty}</Badge>
                         </div>
                       </div>
-                      
-                      {/* Action Steps */}
-                      <div className="mb-3 p-3 bg-blue-50 rounded-lg">
-                        <p className="text-sm font-semibold text-gray-900 mb-2">🎯 Action Steps:</p>
-                        <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
-                          {opportunity.nextSteps.slice(0, 3).map((step, idx) => (
+
+                      <div className="mb-3">
+                        <p className="text-sm text-gray-700">{opportunity.benefits[0]}</p>
+                      </div>
+
+                      <div className="p-3 bg-blue-50 rounded border border-blue-200">
+                        <p className="text-xs font-semibold text-gray-900 mb-1">🎯 Next Steps:</p>
+                        <ol className="list-decimal list-inside space-y-1 text-xs text-gray-700">
+                          {opportunity.nextSteps.slice(0, 2).map((step, idx) => (
                             <li key={idx}>{step}</li>
                           ))}
                         </ol>
                       </div>
-
-                      {/* Tracking */}
-                      <div className="p-3 bg-green-50 rounded-lg">
-                        <p className="text-sm font-semibold text-gray-900 mb-1">📊 How to Track:</p>
-                        <p className="text-xs text-gray-700">{opportunity.methodology}</p>
-                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 bg-white rounded-lg border border-gray-200">
+                  <p className="text-sm text-gray-600">
+                    No specific programs in this tier for your property. Move to the next tier when ready.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
 
-        {/* Secondary Opportunities */}
-        {secondaryOpportunities.length > 0 && (
-          <div className="mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Additional Opportunities</h3>
-            <p className="text-gray-600 mb-4 text-sm">
-              Consider these after completing your top priorities and measuring results
-            </p>
-            <div className="grid md:grid-cols-2 gap-4">
-              {secondaryOpportunities.map((opportunity) => (
-                <Card key={opportunity.id}>
-                
-                  <CardHeader>
-                    <CardTitle className="text-lg">{opportunity.name}</CardTitle>
-                    <div className="flex gap-4 text-sm mt-2">
-                      <div>
-                        <p className="text-gray-600">Annual Savings</p>
-                        <p className="font-bold text-green-600">{formatCurrency(opportunity.annualSavings)}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600">Cost</p>
-                        <p className="font-semibold">
-                          {opportunity.upfrontCost.max === 0 
-                            ? 'FREE' 
-                            : `${formatCurrency(opportunity.upfrontCost.min)}+`}
-                        </p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Key Principles */}
+        <Card className="mb-8 bg-gray-50">
+          <CardHeader>
+            <CardTitle>📋 Key Principles for Success</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li className="flex items-start gap-2">
+                <ArrowRight className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                <span><strong>Complete Tier 1 first:</strong> Establish your baseline before making any changes</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <ArrowRight className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                <span><strong>Track everything:</strong> Document the date of each change and compare monthly bills</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <ArrowRight className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                <span><strong>Wait 3-6 months:</strong> Before major investments (Tier 5), verify your usage patterns with data</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <ArrowRight className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                <span><strong>Start with free programs:</strong> Maximize no-cost opportunities before spending money</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <ArrowRight className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                <span><strong>Use your data:</strong> Let actual usage inform which upgrades make sense for your home</span>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -379,7 +366,7 @@ const Plan = () => {
                   />
                 </div>
                 <p className="text-sm text-gray-600">
-                  We'll send your personalized action plan with tracking recommendations to this email address.
+                  We'll send your personalized 5-tier action plan with tracking recommendations to this email address.
                 </p>
                 <Button onClick={handleEmailReport} className="w-full">
                   Send Plan
