@@ -6,9 +6,11 @@ interface PropertyContextType {
   propertyData: PropertyData | null;
   opportunities: SavingsOpportunity[];
   prioritizedPlan: PrioritizedPlan | null;
+  sessionId: string | null;
   setPropertyData: (data: PropertyData) => void;
   setOpportunities: (opportunities: SavingsOpportunity[]) => void;
   setPrioritizedPlan: (plan: PrioritizedPlan) => void;
+  setSessionId: (id: string) => void;
   resetSession: () => void;
 }
 
@@ -18,6 +20,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [propertyData, setPropertyDataState] = useState<PropertyData | null>(null);
   const [opportunities, setOpportunitiesState] = useState<SavingsOpportunity[]>([]);
   const [prioritizedPlan, setPrioritizedPlanState] = useState<PrioritizedPlan | null>(null);
+  const [sessionId, setSessionIdState] = useState<string | null>(null);
 
   // Load session on mount
   useEffect(() => {
@@ -26,8 +29,18 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setPropertyDataState(session.propertyData);
       setOpportunitiesState(session.opportunities);
       setPrioritizedPlanState(session.prioritizedPlan);
+      // Load session ID from localStorage if available
+      const storedSessionId = localStorage.getItem('hocs_session_id');
+      if (storedSessionId) {
+        setSessionIdState(storedSessionId);
+      }
     }
   }, []);
+
+  const setSessionId = (id: string) => {
+    setSessionIdState(id);
+    localStorage.setItem('hocs_session_id', id);
+  };
 
   const setPropertyData = (data: PropertyData) => {
     setPropertyDataState(data);
@@ -66,7 +79,9 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setPropertyDataState(null);
     setOpportunitiesState([]);
     setPrioritizedPlanState(null);
+    setSessionIdState(null);
     clearSession();
+    localStorage.removeItem('hocs_session_id');
   };
 
   return (
@@ -75,9 +90,11 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         propertyData,
         opportunities,
         prioritizedPlan,
+        sessionId,
         setPropertyData,
         setOpportunities,
         setPrioritizedPlan,
+        setSessionId,
         resetSession
       }}
     >

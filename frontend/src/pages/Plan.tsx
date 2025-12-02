@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bird, Download, Mail, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Bird, Download, Mail, CheckCircle2, ArrowRight, Phone, Globe, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -366,6 +366,268 @@ const Plan = () => {
             </CardContent>
           </Card>
         ))}
+
+        {/* Resources Section */}
+        <Card className="mb-8 bg-white border-2 border-blue-200">
+          <CardHeader className="bg-blue-50">
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <Globe className="w-6 h-6 text-blue-600" />
+              Program Resources & Contact Information
+            </CardTitle>
+            <p className="text-sm text-gray-600 mt-2">
+              Quick reference for all the programs, rebates, and services mentioned in your action plan
+            </p>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              {/* Utility Providers */}
+              <div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
+                  ⚡ Utility Providers
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">LADWP (Los Angeles)</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>(800) 342-5397</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.ladwp.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          ladwp.com <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Energy efficiency programs, rebates, and billing</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">Pasadena Water & Power</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>(626) 744-4005</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.cityofpasadena.net/water-and-power/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          cityofpasadena.net/water-and-power <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Energy audits, rebates, and conservation programs</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">SoCalGas</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>(877) 238-0092</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://socalgas.com/save-money-and-energy/rebates-and-incentives" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          socalgas.com/rebates <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Natural gas rebates, smart thermostats, water heaters</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">Metropolitan Water District</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>(800) 342-5397</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.bewaterwise.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          bewaterwise.com <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Free water conservation kits, turf removal rebates</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Government Programs */}
+              <div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
+                  🏛️ Government Programs
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">LA County Weatherization Program</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>(626) 569-4328</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://dcba.lacounty.gov/weatherization/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          dcba.lacounty.gov/weatherization <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Free insulation, air sealing for income-qualified households</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">California Energy Commission</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>(916) 654-4287</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.energy.ca.gov/programs-and-topics/programs/energy-efficiency" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          energy.ca.gov <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">State energy programs, standards, and resources</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">U.S. Department of Energy</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.energy.gov/energysaver" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          energy.gov/energysaver <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Federal tax credits, weatherization, energy saving tips</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">ENERGY STAR</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.energystar.gov" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          energystar.gov <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Product certifications, federal tax credits, rebate finder</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Solar & Renewable Programs */}
+              <div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
+                  ☀️ Solar & Renewable Energy Programs
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">California SGIP (Battery Storage)</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>(877) 743-4112</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.selfgenca.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          selfgenca.com <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Battery storage incentives (limited funds, apply early)</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">Go Solar California</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.gosolarcalifornia.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          gosolarcalifornia.org <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Solar resources, contractor directory, program information</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">EnergySage Solar Marketplace</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.energysage.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          energysage.com <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Compare solar quotes from pre-screened installers</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">Federal Solar Tax Credit (ITC)</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.energy.gov/eere/solar/homeowners-guide-federal-tax-credit-solar-photovoltaics" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          energy.gov/solar-tax-credit <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">30% federal tax credit for solar installations</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Water Conservation Programs */}
+              <div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
+                  💧 Water Conservation Programs
+                </h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">SoCal Water$mart</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>(888) 376-3314</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://socalwatersmart.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          socalwatersmart.com <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Turf removal rebates ($2/sqft), water-saving devices</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">LA County Water Conservation</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://dpw.lacounty.gov/wwd/web/Conservation/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          dpw.lacounty.gov/conservation <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Local water conservation resources and programs</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Key Principles */}
         <Card className="mb-8 bg-gray-50">
