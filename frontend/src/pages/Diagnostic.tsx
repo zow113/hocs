@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Home, ExternalLink, Info } from 'lucide-react';
+import { ArrowRight, Bird, ExternalLink, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -78,7 +78,7 @@ const Diagnostic = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Home className="w-8 h-8 text-blue-600" />
+              <Bird className="w-8 h-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">HOCS</h1>
             </div>
             <Button variant="outline" onClick={resetSession}>
