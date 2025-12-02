@@ -17,7 +17,7 @@ export interface PropertyData {
 
 export interface SavingsOpportunity {
   id: string;
-  category: 'property-tax' | 'insurance' | 'energy' | 'solar' | 'water' | 'maintenance';
+  category: 'energy' | 'solar' | 'water' | 'maintenance';
   name: string;
   annualSavings: number;
   upfrontCost: { min: number; max: number };

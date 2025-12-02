@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Download, GripVertical, X, RotateCcw, Mail } from 'lucide-react';
+import { Home, Download, X, RotateCcw, Mail, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,14 +26,24 @@ const Plan = () => {
     }
 
     // Generate prioritized plan if not already created
+    // NEW PRIORITIZATION: Cost tier first, then impact within tier
     if (!prioritizedPlan) {
-      const scored = opportunities.map(opp => ({
-        ...opp,
-        score: (opp.annualSavings * 0.4) + 
-               ((10000 - opp.upfrontCost.min) * 0.25) + 
-               ((100 - opp.paybackMonths) * 0.2) + 
-               (opp.confidenceScore * 0.15)
-      })).sort((a, b) => b.score - a.score);
+      const scored = opportunities.map(opp => {
+        // Assign tier score (higher = better priority)
+        let tierScore = 0;
+        if (opp.upfrontCost.max === 0) tierScore = 1000; // Free = highest priority
+        else if (opp.upfrontCost.max <= 500) tierScore = 800; // Low cost
+        else if (opp.upfrontCost.max <= 2500) tierScore = 600; // Medium cost
+        else tierScore = 400; // Investment
+
+        // Within tier, prioritize by annual savings and confidence
+        const impactScore = (opp.annualSavings * 0.7) + (opp.confidenceScore * 0.3);
+        
+        return {
+          ...opp,
+          score: tierScore + impactScore
+        };
+      }).sort((a, b) => b.score - a.score);
 
       const top = scored.slice(0, 5);
       const secondary = scored.slice(5);
@@ -72,7 +82,6 @@ const Plan = () => {
 
     const newTop = topOpportunities.filter(opp => opp.id !== id);
     
-    // Promote next opportunity from secondary list
     if (secondaryOpportunities.length > 0) {
       const promoted = secondaryOpportunities[0];
       newTop.push(promoted);
@@ -94,13 +103,20 @@ const Plan = () => {
   };
 
   const handleReset = () => {
-    const scored = opportunities.map(opp => ({
-      ...opp,
-      score: (opp.annualSavings * 0.4) + 
-             ((10000 - opp.upfrontCost.min) * 0.25) + 
-             ((100 - opp.paybackMonths) * 0.2) + 
-             (opp.confidenceScore * 0.15)
-    })).sort((a, b) => b.score - a.score);
+    const scored = opportunities.map(opp => {
+      let tierScore = 0;
+      if (opp.upfrontCost.max === 0) tierScore = 1000;
+      else if (opp.upfrontCost.max <= 500) tierScore = 800;
+      else if (opp.upfrontCost.max <= 2500) tierScore = 600;
+      else tierScore = 400;
+
+      const impactScore = (opp.annualSavings * 0.7) + (opp.confidenceScore * 0.3);
+      
+      return {
+        ...opp,
+        score: tierScore + impactScore
+      };
+    }).sort((a, b) => b.score - a.score);
 
     const top = scored.slice(0, 5);
     const secondary = scored.slice(5);
@@ -126,7 +142,6 @@ const Plan = () => {
       return;
     }
 
-    // Simulate sending email
     toast.success(`Report will be sent to ${email} within 1 minute`);
     setEmailDialogOpen(false);
     setEmail('');
@@ -134,13 +149,13 @@ const Plan = () => {
 
   const handleDownloadPDF = () => {
     toast.success('PDF report is being generated...');
-    // In a real app, this would generate and download a PDF
     setTimeout(() => {
       toast.success('PDF downloaded successfully!');
     }, 2000);
   };
 
   const totalSavings = topOpportunities.reduce((sum, opp) => sum + opp.annualSavings, 0);
+  const freeActions = topOpportunities.filter(opp => opp.upfrontCost.max === 0).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -163,7 +178,7 @@ const Plan = () => {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-3xl font-bold text-gray-900">Your Prioritized Savings Plan</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Your Action Plan</h2>
             {customized && (
               <Button variant="outline" size="sm" onClick={handleReset}>
                 <RotateCcw className="w-4 h-4 mr-2" />
@@ -172,6 +187,9 @@ const Plan = () => {
             )}
           </div>
           <p className="text-gray-600">{propertyData.address}</p>
+          <p className="text-sm text-blue-600 mt-2 font-medium">
+            Start with {freeActions} free action{freeActions !== 1 ? 's' : ''}, then scale up as you track results
+          </p>
           {customized && (
             <Badge variant="secondary" className="mt-2">Customized Plan</Badge>
           )}
@@ -183,16 +201,49 @@ const Plan = () => {
             <div className="text-center">
               <p className="text-lg text-gray-700 mb-2">Total Potential Annual Savings</p>
               <p className="text-5xl font-bold text-green-600 mb-4">{formatCurrency(totalSavings)}</p>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 If you complete all top 5 recommendations
               </p>
+              <div className="flex justify-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">{freeActions} Free Actions</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                  <span className="font-medium">{5 - freeActions} Low-Cost Actions</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Measurement Reminder */}
+        <Card className="mb-8 bg-blue-50 border-blue-200">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <div className="text-3xl">📊</div>
+              <div>
+                <h3 className="font-semibold text-lg text-gray-900 mb-2">
+                  "What Gets Measured, Gets Managed"
+                </h3>
+                <p className="text-gray-700 text-sm mb-3">
+                  For each action below, we've included specific tracking recommendations. Document your baseline before starting, then monitor monthly to measure your actual savings.
+                </p>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li>✓ Save your current utility bills as baseline</li>
+                  <li>✓ Note the date you complete each action</li>
+                  <li>✓ Track monthly bills for 3-6 months</li>
+                  <li>✓ Calculate your actual ROI</li>
+                </ul>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Top 5 Opportunities */}
         <div className="mb-8">
-          <h3 className="text-2xl font-bold text-gray-900 mb-4">Top 5 Priorities</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">Your Top 5 Priorities</h3>
           <div className="space-y-4">
             {topOpportunities.map((opportunity, index) => (
               <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
@@ -205,7 +256,12 @@ const Plan = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
-                        <CardTitle className="text-xl">{opportunity.name}</CardTitle>
+                        <div>
+                          <CardTitle className="text-xl mb-2">{opportunity.name}</CardTitle>
+                          {opportunity.upfrontCost.max === 0 && (
+                            <Badge className="bg-green-500 mb-2">FREE - Start Here!</Badge>
+                          )}
+                        </div>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -222,9 +278,11 @@ const Plan = () => {
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600">Upfront Cost</p>
+                          <p className="text-sm text-gray-600">Your Cost</p>
                           <p className="font-semibold">
-                            {formatCurrency(opportunity.upfrontCost.min)} - {formatCurrency(opportunity.upfrontCost.max)}
+                            {opportunity.upfrontCost.max === 0 
+                              ? 'FREE' 
+                              : `${formatCurrency(opportunity.upfrontCost.min)} - ${formatCurrency(opportunity.upfrontCost.max)}`}
                           </p>
                         </div>
                         <div>
@@ -232,21 +290,21 @@ const Plan = () => {
                           <Badge variant="secondary">{opportunity.difficulty}</Badge>
                         </div>
                       </div>
-                      <div className="mb-3">
-                        <p className="text-sm font-semibold text-gray-700 mb-2">Key Benefits:</p>
-                        <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-                          {opportunity.benefits.slice(0, 3).map((benefit, idx) => (
-                            <li key={idx}>{benefit}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700 mb-2">Next Steps:</p>
-                        <ol className="list-decimal list-inside space-y-1 text-sm text-gray-600">
-                          {opportunity.nextSteps.slice(0, 2).map((step, idx) => (
+                      
+                      {/* Action Steps */}
+                      <div className="mb-3 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-sm font-semibold text-gray-900 mb-2">🎯 Action Steps:</p>
+                        <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
+                          {opportunity.nextSteps.slice(0, 3).map((step, idx) => (
                             <li key={idx}>{step}</li>
                           ))}
                         </ol>
+                      </div>
+
+                      {/* Tracking */}
+                      <div className="p-3 bg-green-50 rounded-lg">
+                        <p className="text-sm font-semibold text-gray-900 mb-1">📊 How to Track:</p>
+                        <p className="text-xs text-gray-700">{opportunity.methodology}</p>
                       </div>
                     </div>
                   </div>
@@ -259,10 +317,14 @@ const Plan = () => {
         {/* Secondary Opportunities */}
         {secondaryOpportunities.length > 0 && (
           <div className="mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">More Opportunities to Consider</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Additional Opportunities</h3>
+            <p className="text-gray-600 mb-4 text-sm">
+              Consider these after completing your top priorities and measuring results
+            </p>
             <div className="grid md:grid-cols-2 gap-4">
               {secondaryOpportunities.map((opportunity) => (
                 <Card key={opportunity.id}>
+                
                   <CardHeader>
                     <CardTitle className="text-lg">{opportunity.name}</CardTitle>
                     <div className="flex gap-4 text-sm mt-2">
@@ -271,8 +333,12 @@ const Plan = () => {
                         <p className="font-bold text-green-600">{formatCurrency(opportunity.annualSavings)}</p>
                       </div>
                       <div>
-                        <p className="text-gray-600">Upfront Cost</p>
-                        <p className="font-semibold">{formatCurrency(opportunity.upfrontCost.min)}+</p>
+                        <p className="text-gray-600">Cost</p>
+                        <p className="font-semibold">
+                          {opportunity.upfrontCost.max === 0 
+                            ? 'FREE' 
+                            : `${formatCurrency(opportunity.upfrontCost.min)}+`}
+                        </p>
                       </div>
                     </div>
                   </CardHeader>
@@ -286,19 +352,19 @@ const Plan = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button size="lg" onClick={handleDownloadPDF} className="px-8">
             <Download className="mr-2 w-5 h-5" />
-            Download Full Report
+            Download Action Plan
           </Button>
 
           <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
             <DialogTrigger asChild>
               <Button size="lg" variant="outline" className="px-8">
                 <Mail className="mr-2 w-5 h-5" />
-                Email Report
+                Email Plan
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Email Your Report</DialogTitle>
+                <DialogTitle>Email Your Action Plan</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div>
@@ -313,10 +379,10 @@ const Plan = () => {
                   />
                 </div>
                 <p className="text-sm text-gray-600">
-                  We'll send your personalized savings report to this email address. You can also opt-in to receive updates about new savings opportunities.
+                  We'll send your personalized action plan with tracking recommendations to this email address.
                 </p>
                 <Button onClick={handleEmailReport} className="w-full">
-                  Send Report
+                  Send Plan
                 </Button>
               </div>
             </DialogContent>

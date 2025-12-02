@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Home, Filter, DollarSign, TrendingUp, Info } from 'lucide-react';
+import { ArrowRight, Home, DollarSign, TrendingUp, Info, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,8 +10,6 @@ import { useProperty } from '@/context/PropertyContext';
 import { SavingsOpportunity } from '@/types/property';
 
 const categoryIcons: Record<string, string> = {
-  'property-tax': '🏛️',
-  'insurance': '🛡️',
   'energy': '⚡',
   'solar': '☀️',
   'water': '💧',
@@ -19,19 +17,17 @@ const categoryIcons: Record<string, string> = {
 };
 
 const categoryNames: Record<string, string> = {
-  'property-tax': 'Property Tax',
-  'insurance': 'Home Insurance',
   'energy': 'Energy Efficiency',
-  'solar': 'Solar ROI',
+  'solar': 'Solar & Renewable',
   'water': 'Water Conservation',
-  'maintenance': 'Maintenance Prevention'
+  'maintenance': 'Maintenance & Upgrades'
 };
 
 const Diagnostic = () => {
   const navigate = useNavigate();
   const { propertyData, opportunities, resetSession } = useProperty();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'savings' | 'cost' | 'payback'>('savings');
+  const [selectedCostTier, setSelectedCostTier] = useState<string>('all');
 
   useEffect(() => {
     if (!propertyData || opportunities.length === 0) {
@@ -41,22 +37,34 @@ const Diagnostic = () => {
 
   if (!propertyData || opportunities.length === 0) return null;
 
-  const filteredOpportunities = selectedCategory === 'all'
-    ? opportunities
-    : opportunities.filter(opp => opp.category === selectedCategory);
+  // Organize by cost tiers
+  const noCostOpps = opportunities.filter(opp => opp.upfrontCost.max === 0);
+  const lowCostOpps = opportunities.filter(opp => opp.upfrontCost.max > 0 && opp.upfrontCost.max <= 500);
+  const mediumCostOpps = opportunities.filter(opp => opp.upfrontCost.max > 500 && opp.upfrontCost.max <= 2500);
+  const highCostOpps = opportunities.filter(opp => opp.upfrontCost.max > 2500);
 
-  const sortedOpportunities = [...filteredOpportunities].sort((a, b) => {
-    switch (sortBy) {
-      case 'savings':
-        return b.annualSavings - a.annualSavings;
-      case 'cost':
-        return a.upfrontCost.min - b.upfrontCost.min;
-      case 'payback':
-        return a.paybackMonths - b.paybackMonths;
-      default:
-        return 0;
+  let filteredOpportunities = opportunities;
+  
+  if (selectedCategory !== 'all') {
+    filteredOpportunities = filteredOpportunities.filter(opp => opp.category === selectedCategory);
+  }
+
+  if (selectedCostTier !== 'all') {
+    switch (selectedCostTier) {
+      case 'free':
+        filteredOpportunities = filteredOpportunities.filter(opp => opp.upfrontCost.max === 0);
+        break;
+      case 'low':
+        filteredOpportunities = filteredOpportunities.filter(opp => opp.upfrontCost.max > 0 && opp.upfrontCost.max <= 500);
+        break;
+      case 'medium':
+        filteredOpportunities = filteredOpportunities.filter(opp => opp.upfrontCost.max > 500 && opp.upfrontCost.max <= 2500);
+        break;
+      case 'high':
+        filteredOpportunities = filteredOpportunities.filter(opp => opp.upfrontCost.max > 2500);
+        break;
     }
-  });
+  }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -71,6 +79,13 @@ const Diagnostic = () => {
     if (score >= 90) return 'text-green-600';
     if (score >= 70) return 'text-yellow-600';
     return 'text-orange-600';
+  };
+
+  const getCostTierBadge = (opp: SavingsOpportunity) => {
+    if (opp.upfrontCost.max === 0) return <Badge className="bg-green-500">FREE</Badge>;
+    if (opp.upfrontCost.max <= 500) return <Badge className="bg-blue-500">Low Cost</Badge>;
+    if (opp.upfrontCost.max <= 2500) return <Badge className="bg-yellow-500">Medium Cost</Badge>;
+    return <Badge className="bg-purple-500">Investment</Badge>;
   };
 
   const categories = Array.from(new Set(opportunities.map(opp => opp.category)));
@@ -95,52 +110,51 @@ const Diagnostic = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Savings Diagnostic</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Available Programs & Rebates</h2>
           <p className="text-gray-600">{propertyData.address}</p>
+          <p className="text-sm text-blue-600 mt-2 font-medium">
+            Prioritized by cost: Start free, then scale up as you measure results
+          </p>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card>
+        <div className="grid md:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-green-50 border-green-200">
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Opportunities</p>
-                  <p className="text-3xl font-bold text-gray-900">{opportunities.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
-                </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-1">Free Programs</p>
+                <p className="text-3xl font-bold text-green-600">{noCostOpps.length}</p>
+                <p className="text-xs text-gray-500 mt-1">Start here</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-blue-50 border-blue-200">
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Potential Annual Savings</p>
-                  <p className="text-3xl font-bold text-green-600">
-                    {formatCurrency(opportunities.reduce((sum, opp) => sum + opp.annualSavings, 0))}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-green-600" />
-                </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-1">Low Cost (&lt;$500)</p>
+                <p className="text-3xl font-bold text-blue-600">{lowCostOpps.length}</p>
+                <p className="text-xs text-gray-500 mt-1">Quick wins</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-yellow-50 border-yellow-200">
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Categories Analyzed</p>
-                  <p className="text-3xl font-bold text-gray-900">{categories.length}</p>
-                </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Filter className="w-6 h-6 text-purple-600" />
-                </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-1">Medium ($500-$2.5K)</p>
+                <p className="text-3xl font-bold text-yellow-600">{mediumCostOpps.length}</p>
+                <p className="text-xs text-gray-500 mt-1">With rebates</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-1">Investments (&gt;$2.5K)</p>
+                <p className="text-3xl font-bold text-purple-600">{highCostOpps.length}</p>
+                <p className="text-xs text-gray-500 mt-1">Long-term</p>
               </div>
             </CardContent>
           </Card>
@@ -148,6 +162,21 @@ const Diagnostic = () => {
 
         {/* Filters */}
         <div className="mb-6 flex flex-wrap gap-4 items-center">
+          <div>
+            <label className="text-sm font-medium text-gray-700 mr-2">Cost Tier:</label>
+            <select
+              value={selectedCostTier}
+              onChange={(e) => setSelectedCostTier(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2"
+            >
+              <option value="all">All Costs</option>
+              <option value="free">Free Only</option>
+              <option value="low">Low Cost (&lt;$500)</option>
+              <option value="medium">Medium ($500-$2.5K)</option>
+              <option value="high">Investment (&gt;$2.5K)</option>
+            </select>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-gray-700 mr-2">Category:</label>
             <select
@@ -161,31 +190,19 @@ const Diagnostic = () => {
               ))}
             </select>
           </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 mr-2">Sort by:</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="border border-gray-300 rounded-md px-3 py-2"
-            >
-              <option value="savings">Annual Savings</option>
-              <option value="cost">Upfront Cost</option>
-              <option value="payback">Payback Period</option>
-            </select>
-          </div>
         </div>
 
         {/* Opportunities List */}
         <div className="space-y-4 mb-8">
-          {sortedOpportunities.map((opportunity) => (
+          {filteredOpportunities.map((opportunity) => (
             <Card key={opportunity.id} className="hover:shadow-lg transition-shadow">
               <Collapsible>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <span className="text-2xl">{categoryIcons[opportunity.category]}</span>
+                        {getCostTierBadge(opportunity)}
                         <Badge variant="outline">{categoryNames[opportunity.category]}</Badge>
                         <Badge className={getConfidenceColor(opportunity.confidenceScore)}>
                           {opportunity.confidenceScore}% confidence
@@ -200,15 +217,19 @@ const Diagnostic = () => {
                           </p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Upfront Cost</p>
+                          <p className="text-gray-600">Your Cost</p>
                           <p className="font-semibold">
-                            {formatCurrency(opportunity.upfrontCost.min)} - {formatCurrency(opportunity.upfrontCost.max)}
+                            {opportunity.upfrontCost.max === 0 
+                              ? 'FREE' 
+                              : `${formatCurrency(opportunity.upfrontCost.min)} - ${formatCurrency(opportunity.upfrontCost.max)}`}
                           </p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Payback Period</p>
+                          <p className="text-gray-600">Payback</p>
                           <p className="font-semibold">
-                            {Math.floor(opportunity.paybackMonths / 12)} years {opportunity.paybackMonths % 12} months
+                            {opportunity.upfrontCost.max === 0 
+                              ? 'Immediate' 
+                              : `${Math.floor(opportunity.paybackMonths / 12)}y ${opportunity.paybackMonths % 12}m`}
                           </p>
                         </div>
                         <div>
@@ -229,14 +250,14 @@ const Diagnostic = () => {
                   <CardContent className="pt-0">
                     <Tabs defaultValue="benefits" className="w-full">
                       <TabsList>
-                        <TabsTrigger value="benefits">Benefits</TabsTrigger>
-                        <TabsTrigger value="steps">Next Steps</TabsTrigger>
-                        <TabsTrigger value="rebates">Rebates</TabsTrigger>
-                        <TabsTrigger value="methodology">How We Calculated</TabsTrigger>
+                        <TabsTrigger value="benefits">Why This Matters</TabsTrigger>
+                        <TabsTrigger value="steps">Action Steps</TabsTrigger>
+                        <TabsTrigger value="rebates">Programs & Rebates</TabsTrigger>
+                        <TabsTrigger value="tracking">How to Track</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="benefits" className="space-y-2">
-                        <ul className="list-disc list-inside space-y-1">
+                        <ul className="list-disc list-inside space-y-2">
                           {opportunity.benefits.map((benefit, idx) => (
                             <li key={idx} className="text-gray-700">{benefit}</li>
                           ))}
@@ -244,9 +265,9 @@ const Diagnostic = () => {
                       </TabsContent>
 
                       <TabsContent value="steps" className="space-y-2">
-                        <ol className="list-decimal list-inside space-y-2">
+                        <ol className="list-decimal list-inside space-y-3">
                           {opportunity.nextSteps.map((step, idx) => (
-                            <li key={idx} className="text-gray-700">{step}</li>
+                            <li key={idx} className="text-gray-700 font-medium">{step}</li>
                           ))}
                         </ol>
                       </TabsContent>
@@ -255,30 +276,44 @@ const Diagnostic = () => {
                         {opportunity.rebates.length > 0 ? (
                           <div className="space-y-3">
                             {opportunity.rebates.map((rebate, idx) => (
-                              <div key={idx} className="p-3 bg-green-50 rounded-lg">
+                              <div key={idx} className="p-4 bg-green-50 rounded-lg border border-green-200">
                                 <div className="flex justify-between items-start mb-2">
                                   <p className="font-semibold text-gray-900">{rebate.name}</p>
-                                  <p className="font-bold text-green-600">{formatCurrency(rebate.amount)}</p>
+                                  <p className="font-bold text-green-600 text-lg">{formatCurrency(rebate.amount)}</p>
                                 </div>
                                 <a
                                   href={rebate.link}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-sm text-blue-600 hover:underline"
+                                  className="text-sm text-blue-600 hover:underline flex items-center gap-1"
                                 >
-                                  Learn more & apply →
+                                  Apply for this rebate <ExternalLink className="w-3 h-3" />
                                 </a>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-gray-500">No rebates currently available for this opportunity</p>
+                          <div className="p-4 bg-blue-50 rounded-lg">
+                            <p className="text-gray-700">
+                              <strong>No rebates needed!</strong> This is a free program or service available to all LA County residents.
+                            </p>
+                          </div>
                         )}
                       </TabsContent>
 
-                      <TabsContent value="methodology">
-                        <div className="p-4 bg-gray-50 rounded-lg">
+                      <TabsContent value="tracking">
+                        <div className="p-4 bg-blue-50 rounded-lg space-y-3">
+                          <p className="font-semibold text-gray-900">📊 Measurement Strategy:</p>
                           <p className="text-gray-700 text-sm">{opportunity.methodology}</p>
+                          <div className="mt-4 p-3 bg-white rounded border border-blue-200">
+                            <p className="font-semibold text-sm text-gray-900 mb-2">Tracking Checklist:</p>
+                            <ul className="text-sm text-gray-700 space-y-1">
+                              <li>✓ Document baseline (current bills/usage)</li>
+                              <li>✓ Note implementation date</li>
+                              <li>✓ Track monthly for 3-6 months</li>
+                              <li>✓ Calculate actual savings vs. estimate</li>
+                            </ul>
+                          </div>
                         </div>
                       </TabsContent>
                     </Tabs>
@@ -296,7 +331,7 @@ const Diagnostic = () => {
             onClick={() => navigate('/plan')}
             className="px-8"
           >
-            Show Me My Prioritized Plan
+            Show Me My Action Plan
             <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
         </div>

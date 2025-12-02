@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Home as HomeIcon, TrendingDown, FileText } from 'lucide-react';
+import { Search, Home as HomeIcon, Lightbulb, Gift, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -41,7 +41,6 @@ const Home = () => {
       return;
     }
 
-    // Check if address is in LA County (mock validation)
     const isLACounty = laCountyAddresses.some(addr =>
       addr.toLowerCase().includes(address.toLowerCase())
     );
@@ -51,7 +50,6 @@ const Home = () => {
       return;
     }
 
-    // Find matching property data
     const propertyKey = Object.keys(mockPropertyData).find(key =>
       key.toLowerCase().includes(address.toLowerCase())
     );
@@ -65,7 +63,6 @@ const Home = () => {
       
       toast.success('Property data retrieved successfully!');
       
-      // Navigate to insights page
       setTimeout(() => {
         navigate('/insights');
       }, 500);
@@ -101,10 +98,13 @@ const Home = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Discover How Much You Could Save as a Homeowner in LA County
+            Discover Free Programs & Rebates for Your LA County Home
           </h2>
-          <p className="text-xl text-gray-600 mb-12">
-            Get personalized, data-driven recommendations to reduce your property taxes, insurance costs, utility bills, and more.
+          <p className="text-xl text-gray-600 mb-4">
+            Get personalized recommendations for no-cost and low-cost actions that deliver real savings.
+          </p>
+          <p className="text-lg text-blue-600 font-semibold mb-12">
+            "What gets measured, gets managed" - Start tracking your home's performance today.
           </p>
 
           {/* Search Box */}
@@ -121,7 +121,6 @@ const Home = () => {
                   className="pl-10 h-14 text-lg"
                 />
                 
-                {/* Autocomplete Suggestions */}
                 {showSuggestions && suggestions.length > 0 && (
                   <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
                     {suggestions.map((suggestion, index) => (
@@ -140,7 +139,7 @@ const Home = () => {
                 )}
               </div>
               <Button onClick={handleAnalyze} size="lg" className="h-14 px-8">
-                Analyze Property
+                Find Programs
               </Button>
             </div>
             <p className="text-sm text-gray-500 mt-2 text-left">
@@ -151,34 +150,45 @@ const Home = () => {
           {/* Feature Cards */}
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <Card className="p-6 text-center hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingDown className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Gift className="w-6 h-6 text-green-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Instant Analysis</h3>
+              <h3 className="font-semibold text-lg mb-2">Free Programs First</h3>
               <p className="text-gray-600 text-sm">
-                Get comprehensive property insights and savings opportunities in seconds
+                Start with no-cost energy audits, free conservation kits, and available rebates
               </p>
             </Card>
 
             <Card className="p-6 text-center hover:shadow-lg transition-shadow">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lightbulb className="w-6 h-6 text-blue-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Prioritized Plan</h3>
+              <h3 className="font-semibold text-lg mb-2">Actionable Insights</h3>
               <p className="text-gray-600 text-sm">
-                Clear roadmap showing which improvements will save you the most money
+                Clear next steps with links to programs, rebate applications, and tracking tools
               </p>
             </Card>
 
             <Card className="p-6 text-center hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <HomeIcon className="w-6 h-6 text-purple-600" />
+                <TrendingUp className="w-6 h-6 text-purple-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">No Account Needed</h3>
+              <h3 className="font-semibold text-lg mb-2">Measure & Manage</h3>
               <p className="text-gray-600 text-sm">
-                Start analyzing immediately - no signup or personal information required
+                Track your progress with baseline measurements and monthly monitoring
               </p>
             </Card>
+          </div>
+
+          {/* Educational Note */}
+          <div className="mt-12 p-6 bg-white rounded-lg shadow-md max-w-3xl mx-auto">
+            <h3 className="font-semibold text-lg mb-3 text-gray-900">How It Works</h3>
+            <div className="text-left space-y-2 text-gray-700">
+              <p><strong>1. Start Free:</strong> We prioritize no-cost programs like free energy audits and conservation kits</p>
+              <p><strong>2. Low-Cost, High Impact:</strong> Then show affordable upgrades with quick payback and available rebates</p>
+              <p><strong>3. Track Everything:</strong> Get baseline measurements and monthly tracking recommendations</p>
+              <p><strong>4. Scale Up:</strong> When ready, explore larger investments with significant long-term savings</p>
+            </div>
           </div>
         </div>
       </div>
