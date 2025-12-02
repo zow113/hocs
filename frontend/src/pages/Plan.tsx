@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useProperty } from '@/context/PropertyContext';
 import { SavingsOpportunity } from '@/types/property';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ const Plan = () => {
   const [tiers, setTiers] = useState<TierGroup[]>([]);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [email, setEmail] = useState('');
+  const [optInUpdates, setOptInUpdates] = useState(false);
 
   useEffect(() => {
     if (!propertyData || opportunities.length === 0) {
@@ -130,9 +132,14 @@ const Plan = () => {
       return;
     }
 
-    toast.success(`Action plan will be sent to ${email} within 1 minute`);
+    const message = optInUpdates 
+      ? `Action plan will be sent to ${email}. You'll also receive updates when new programs become available.`
+      : `Action plan will be sent to ${email} within 1 minute`;
+    
+    toast.success(message);
     setEmailDialogOpen(false);
     setEmail('');
+    setOptInUpdates(false);
   };
 
   const handleDownloadPDF = () => {
@@ -169,6 +176,62 @@ const Plan = () => {
           <p className="text-sm text-gray-700">
             Follow this crawl-walk-run approach: Start with Tier 1 to establish visibility, then work through each tier sequentially. Complete one tier before moving to the next.
           </p>
+        </div>
+
+        {/* Action Buttons - Top */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+          <Button size="lg" onClick={handleDownloadPDF} className="px-8">
+            <Download className="mr-2 w-5 h-5" />
+            Download Action Plan
+          </Button>
+
+          <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="lg" variant="outline" className="px-8">
+                <Mail className="mr-2 w-5 h-5" />
+                Email Plan
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Email Your Action Plan</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Email Address
+                  </label>
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex items-start space-x-2">
+                  <Checkbox 
+                    id="updates" 
+                    checked={optInUpdates}
+                    onCheckedChange={(checked) => setOptInUpdates(checked as boolean)}
+                  />
+                  <label
+                    htmlFor="updates"
+                    className="text-sm text-gray-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    Email me when new updates are available
+                  </label>
+                </div>
+
+                <p className="text-sm text-gray-600">
+                  We'll send your personalized 5-tier action plan with tracking recommendations to this email address.
+                </p>
+                <Button onClick={handleEmailReport} className="w-full">
+                  Send Plan
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Summary Card */}
@@ -335,7 +398,7 @@ const Plan = () => {
           </CardContent>
         </Card>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Bottom */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button size="lg" onClick={handleDownloadPDF} className="px-8">
             <Download className="mr-2 w-5 h-5" />
@@ -365,6 +428,21 @@ const Plan = () => {
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
+                
+                <div className="flex items-start space-x-2">
+                  <Checkbox 
+                    id="updates-bottom" 
+                    checked={optInUpdates}
+                    onCheckedChange={(checked) => setOptInUpdates(checked as boolean)}
+                  />
+                  <label
+                    htmlFor="updates-bottom"
+                    className="text-sm text-gray-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                  >
+                    Email me when new updates are available
+                  </label>
+                </div>
+
                 <p className="text-sm text-gray-600">
                   We'll send your personalized 5-tier action plan with tracking recommendations to this email address.
                 </p>

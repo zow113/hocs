@@ -1,24 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Home, ExternalLink, Info, Download, Mail } from 'lucide-react';
+import { ArrowRight, Home, ExternalLink, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useProperty } from '@/context/PropertyContext';
 import { SavingsOpportunity } from '@/types/property';
-import { toast } from 'sonner';
 
 const Diagnostic = () => {
   const navigate = useNavigate();
   const { propertyData, opportunities, resetSession } = useProperty();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedOpportunity, setSelectedOpportunity] = useState<SavingsOpportunity | null>(null);
-  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
-  const [email, setEmail] = useState('');
-  const [optInUpdates, setOptInUpdates] = useState(false);
 
   useEffect(() => {
     if (!propertyData || opportunities.length === 0) {
@@ -74,29 +68,6 @@ const Diagnostic = () => {
     return <Badge className={effort.color}>{effort.label}</Badge>;
   };
 
-  const handleEmailReport = () => {
-    if (!email || !email.includes('@')) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
-    const message = optInUpdates 
-      ? `Savings report will be sent to ${email}. You'll also receive updates when new programs become available.`
-      : `Savings report will be sent to ${email} within 1 minute`;
-    
-    toast.success(message);
-    setEmailDialogOpen(false);
-    setEmail('');
-    setOptInUpdates(false);
-  };
-
-  const handleDownloadPDF = () => {
-    toast.success('PDF savings report is being generated...');
-    setTimeout(() => {
-      toast.success('PDF downloaded successfully!');
-    }, 2000);
-  };
-
   const categories = Array.from(new Set(opportunities.map(opp => opp.category)));
   const totalPotentialSavings = opportunities.reduce((sum, opp) => sum + opp.annualSavings, 0);
 
@@ -125,62 +96,6 @@ const Diagnostic = () => {
           <p className="text-sm text-gray-700">
             All available programs, rebates, and opportunities for your home. Start with free programs at the top, then work your way down as you track results.
           </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-          <Button size="lg" onClick={handleDownloadPDF} variant="outline" className="px-8">
-            <Download className="mr-2 w-5 h-5" />
-            Download Report
-          </Button>
-
-          <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="lg" variant="outline" className="px-8">
-                <Mail className="mr-2 w-5 h-5" />
-                Email Report
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Email Your Savings Report</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Email Address
-                  </label>
-                  <Input
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                
-                <div className="flex items-start space-x-2">
-                  <Checkbox 
-                    id="updates" 
-                    checked={optInUpdates}
-                    onCheckedChange={(checked) => setOptInUpdates(checked as boolean)}
-                  />
-                  <label
-                    htmlFor="updates"
-                    className="text-sm text-gray-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                  >
-                    Send me updates when new programs and savings opportunities become available
-                  </label>
-                </div>
-
-                <p className="text-sm text-gray-600">
-                  We'll send your personalized savings report with all available programs and rebates to this email address.
-                </p>
-                <Button onClick={handleEmailReport} className="w-full">
-                  Send Report
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Summary Card */}
