@@ -64,7 +64,7 @@ const Home = () => {
       toast.success('Property data retrieved successfully!');
       
       setTimeout(() => {
-        navigate('/insights');
+        navigate('/diagnostic');
       }, 500);
     } else {
       toast.error('Property not found. Please try a different address.');
