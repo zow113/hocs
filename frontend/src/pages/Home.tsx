@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Home as HomeIcon, Lightbulb, Gift, TrendingUp } from 'lucide-react';
+import { Search, Bird, Lightbulb, Gift, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -84,7 +84,7 @@ const Home = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <HomeIcon className="w-8 h-8 text-blue-600" />
+              <Bird className="w-8 h-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">HOCS</h1>
             </div>
             <Button variant="outline" onClick={handleNewSearch}>
@@ -98,7 +98,7 @@ const Home = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Discover Free Programs & Rebates for Your LA County Home
+            Home Ownership Cost Saver
           </h2>
           <p className="text-xl text-gray-600 mb-4">
             Get personalized recommendations for no-cost and low-cost actions that deliver real savings.
@@ -130,7 +130,7 @@ const Home = () => {
                         className="w-full text-left px-4 py-3 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
                       >
                         <div className="flex items-center">
-                          <HomeIcon className="w-4 h-4 text-gray-400 mr-2" />
+                          <Search className="w-4 h-4 text-gray-400 mr-2" />
                           <span className="text-gray-900">{suggestion}</span>
                         </div>
                       </button>
