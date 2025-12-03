@@ -11,6 +11,7 @@ import random
 from uuid import uuid4
 from io import BytesIO
 from pydantic import BaseModel, EmailStr
+from contextlib import asynccontextmanager
 
 from models import (
     PropertyData,
@@ -26,11 +27,34 @@ from services.email_service import send_report_email
 # Load environment variables
 load_dotenv()
 
-app = FastAPI(title="HOCS Backend API", version="1.0.0")
-
 # MongoDB client
 mongo_client = None
 db = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events"""
+    global mongo_client, db
+    
+    # Startup: Initialize MongoDB connection
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    mongo_client = AsyncIOMotorClient(mongo_uri)
+    db = mongo_client.get_database("hocs")
+    
+    # Create TTL index on sessions collection
+    await db.sessions.create_index("expires_at", expireAfterSeconds=0)
+    print("✓ MongoDB connected and TTL index created on sessions.expires_at")
+    
+    yield
+    
+    # Shutdown: Close MongoDB connection
+    if mongo_client:
+        mongo_client.close()
+        print("✓ MongoDB connection closed")
+
+
+app = FastAPI(title="HOCS Backend API", version="1.0.0", lifespan=lifespan)
 
 # CORS configuration
 origins = [
@@ -46,26 +70,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-async def startup_db_client():
-    """Initialize MongoDB connection on startup"""
-    global mongo_client, db
-    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-    mongo_client = AsyncIOMotorClient(mongo_uri)
-    db = mongo_client.get_database("hocs")
-    
-    # Create TTL index on sessions collection
-    await db.sessions.create_index("expires_at", expireAfterSeconds=0)
-    print("✓ TTL index created on sessions.expires_at")
-
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    """Close MongoDB connection on shutdown"""
-    if mongo_client:
-        mongo_client.close()
 
 
 @app.get("/healthz")
