@@ -10,6 +10,7 @@ backend/env/
 backend/ENV/
 backend/.venv
 backend/.env
+frontend/.env
 
 # Node
 node_modules/
