@@ -6,3 +6,4 @@ python-dotenv==1.0.1
 pymongo==4.9.1
 reportlab==4.2.5
 resend==2.19.0
+pydantic[email]==2.10.3
