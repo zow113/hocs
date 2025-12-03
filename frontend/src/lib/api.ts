@@ -5,6 +5,11 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Log the API URL on initialization to help with debugging
+console.log('[API] Initialized with API_BASE_URL:', API_BASE_URL);
+console.log('[API] Environment:', import.meta.env.MODE);
+console.log('[API] All env vars:', import.meta.env);
+
 interface ApiError {
   detail: string;
 }
