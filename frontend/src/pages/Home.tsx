@@ -1,196 +1,80 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Bird, Lightbulb, Gift, TrendingUp } from 'lucide-react';
+import { Search, Lightbulb, Gift, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useProperty } from '@/context/PropertyContext';
-import { lookupProperty, addToWaitlist } from '@/lib/api';
+import { mockPropertyData, laCountyAddresses, generateMockOpportunities } from '@/utils/mockData';
 import { toast } from 'sonner';
 
 const Home = () => {
   const [address, setAddress] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoaded, setIsGoogleLoaded] = useState(false);
-  const [showWaitlistDialog, setShowWaitlistDialog] = useState(false);
-  const [waitlistEmail, setWaitlistEmail] = useState('');
-  const [waitlistAddress, setWaitlistAddress] = useState('');
-  const [isSubmittingWaitlist, setIsSubmittingWaitlist] = useState(false);
-  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const navigate = useNavigate();
-  const { setPropertyData, setOpportunities, setSessionId, resetSession } = useProperty();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const { setPropertyData, setOpportunities, resetSession } = useProperty();
 
-  // Load Google Places API
-  useEffect(() => {
-    const apiKey = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
+  const handleAddressChange = (value: string) => {
+    setAddress(value);
     
-    if (!apiKey) {
-      console.error('Google Places API key not found');
-      toast.error('Address autocomplete is not configured');
-      return;
-    }
-
-    // Check if script already loaded
-    if (window.google?.maps?.places) {
-      setIsGoogleLoaded(true);
-      return;
-    }
-
-    // Create a global callback function
-    const callbackName = 'initGooglePlaces';
-    (window as any)[callbackName] = () => {
-      console.log('Google Places API loaded successfully');
-      setIsGoogleLoaded(true);
-      delete (window as any)[callbackName];
-    };
-
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${callbackName}`;
-    script.async = true;
-    script.defer = true;
-    
-    script.onerror = (error) => {
-      console.error('Failed to load Google Places API:', error);
-      toast.error('Failed to load address autocomplete. Please refresh the page.');
-      delete (window as any)[callbackName];
-    };
-    
-    document.head.appendChild(script);
-
-    return () => {
-      // Cleanup
-      delete (window as any)[callbackName];
-    };
-  }, []);
-
-  // Initialize Google Places Autocomplete
-  useEffect(() => {
-    if (!isGoogleLoaded || !inputRef.current || autocompleteRef.current) {
-      return;
-    }
-
-    try {
-      const autocomplete = new google.maps.places.Autocomplete(inputRef.current, {
-        types: ['address'],
-        componentRestrictions: { country: 'us' },
-        fields: ['formatted_address', 'address_components', 'geometry'],
-      });
-
-      // Strictly bias results to Los Angeles County
-      const laCountyBounds = new google.maps.LatLngBounds(
-        new google.maps.LatLng(33.7037, -118.6682), // Southwest
-        new google.maps.LatLng(34.8233, -117.6462)  // Northeast
+    if (value.length > 2) {
+      const filtered = laCountyAddresses.filter(addr =>
+        addr.toLowerCase().includes(value.toLowerCase())
       );
-      autocomplete.setBounds(laCountyBounds);
-      autocomplete.setOptions({ strictBounds: false }); // Allow manual entry but bias to LA County
-
-      autocomplete.addListener('place_changed', () => {
-        const place = autocomplete.getPlace();
-        
-        if (!place.address_components) {
-          return;
-        }
-
-        // Validate that the address is in Los Angeles County
-        const isLACounty = place.address_components.some(component => {
-          // Check for "Los Angeles County" or "Los Angeles" in administrative_area_level_2
-          return component.types.includes('administrative_area_level_2') &&
-                 (component.long_name === 'Los Angeles County' ||
-                  component.short_name === 'Los Angeles County');
-        });
-
-        if (!isLACounty) {
-          // Show waitlist dialog for unsupported areas
-          setWaitlistAddress(place.formatted_address || '');
-          setShowWaitlistDialog(true);
-          setAddress('');
-          if (inputRef.current) {
-            inputRef.current.value = '';
-          }
-          return;
-        }
-
-        if (place.formatted_address) {
-          setAddress(place.formatted_address);
-        }
-      });
-
-      autocompleteRef.current = autocomplete;
-      console.log('Google Places Autocomplete initialized successfully');
-    } catch (error) {
-      console.error('Error initializing Google Places Autocomplete:', error);
-      toast.error('Failed to initialize address autocomplete');
+      setSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
     }
-  }, [isGoogleLoaded]);
+  };
 
-  const handleAnalyze = async () => {
+  const handleAddressSelect = (selectedAddress: string) => {
+    setAddress(selectedAddress);
+    setShowSuggestions(false);
+  };
+
+  const handleAnalyze = () => {
     if (!address) {
       toast.error('Please enter an address');
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      const response = await lookupProperty(address);
+    const isLACounty = laCountyAddresses.some(addr =>
+      addr.toLowerCase().includes(address.toLowerCase())
+    );
+
+    if (!isLACounty) {
+      toast.error('Address must be in Los Angeles County. Please check your address and try again.');
+      return;
+    }
+
+    const propertyKey = Object.keys(mockPropertyData).find(key =>
+      key.toLowerCase().includes(address.toLowerCase())
+    );
+
+    if (propertyKey) {
+      const property = mockPropertyData[propertyKey];
+      const opportunities = generateMockOpportunities(property);
       
-      // Store session ID and property data
-      setSessionId(response.session_id);
-      setPropertyData(response.property);
-      setOpportunities(response.opportunities);
+      setPropertyData(property);
+      setOpportunities(opportunities);
       
       toast.success('Property data retrieved successfully!');
       
       setTimeout(() => {
         navigate('/diagnostic');
       }, 500);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve property data';
-      toast.error(errorMessage);
-      console.error('Error looking up property:', error);
-    } finally {
-      setIsLoading(false);
+    } else {
+      toast.error('Property not found. Please try a different address.');
     }
-  };
-
-  const handleWaitlistSubmit = async () => {
-    if (!waitlistEmail || !waitlistEmail.includes('@')) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
-    setIsSubmittingWaitlist(true);
-    
-    try {
-      const response = await addToWaitlist(waitlistEmail, waitlistAddress);
-      
-      if (response.already_registered) {
-        toast.info(response.message);
-      } else {
-        setWaitlistSubmitted(true);
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to join waitlist';
-      toast.error(errorMessage);
-      console.error('Error joining waitlist:', error);
-    } finally {
-      setIsSubmittingWaitlist(false);
-    }
-  };
-
-  const handleCloseWaitlistDialog = () => {
-    setShowWaitlistDialog(false);
-    setWaitlistEmail('');
-    setWaitlistAddress('');
-    setWaitlistSubmitted(false);
   };
 
   const handleNewSearch = () => {
     resetSession();
     setAddress('');
+    setSuggestions([]);
   };
 
   return (
@@ -200,7 +84,11 @@ const Home = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Bird className="w-8 h-8 text-blue-600" />
+              <img 
+                src="https://chatgpt.com/backend-api/estuary/content?id=file_00000000b180722f86c605da4635c067&ts=490204&p=fs&cid=1&sig=8a2ae70cb23938dfdda1dec2201986521fbcf864658c8d2a447b2de7a9225766&v=0" 
+                alt="HOCS Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <h1 className="text-2xl font-bold text-gray-900">HOCS</h1>
             </div>
             <Button variant="outline" onClick={handleNewSearch}>
@@ -219,40 +107,45 @@ const Home = () => {
           <p className="text-xl text-gray-600 mb-4">
             Get personalized recommendations for no-cost and low-cost actions that deliver real savings.
           </p>
-          <p className="text-lg text-blue-600 font-semibold mb-12">
+          <p className="text-lg font-semibold mb-12" style={{ color: '#2563eb' }}>
             "What gets measured, gets managed" - Start tracking your home's performance today.
           </p>
 
           {/* Search Box */}
           <div className="relative max-w-2xl mx-auto mb-16">
-            <form onSubmit={(e) => { e.preventDefault(); handleAnalyze(); }} className="flex gap-2">
+            <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none z-10" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
-                  ref={inputRef}
                   type="text"
                   placeholder="Enter your LA County home address..."
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !document.querySelector('.pac-container:hover')) {
-                      e.preventDefault();
-                      handleAnalyze();
-                    }
-                  }}
+                  onChange={(e) => handleAddressChange(e.target.value)}
+                  onFocus={() => address.length > 2 && setShowSuggestions(true)}
                   className="pl-10 h-14 text-lg"
-                  autoComplete="off"
                 />
+                
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    {suggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleAddressSelect(suggestion)}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg transition-colors"
+                      >
+                        <div className="flex items-center">
+                          <Search className="w-4 h-4 text-gray-400 mr-2" />
+                          <span className="text-gray-900">{suggestion}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-              <Button
-                type="submit"
-                size="lg"
-                className="h-14 px-8"
-                disabled={isLoading || !address}
-              >
-                {isLoading ? 'Analyzing...' : 'Find Programs'}
+              <Button onClick={handleAnalyze} size="lg" className="h-14 px-8">
+                Find Programs
               </Button>
-            </form>
+            </div>
             <p className="text-sm text-gray-500 mt-2 text-left">
               Try: "123 Main St, Pasadena" or "456 Oak Ave, Los Angeles"
             </p>
@@ -303,82 +196,6 @@ const Home = () => {
           </div>
         </div>
       </div>
-
-      {/* Waitlist Dialog */}
-      <Dialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {waitlistSubmitted ? 'You\'re on the Waitlist!' : 'Area Not Yet Supported'}
-            </DialogTitle>
-            <DialogDescription>
-              {waitlistSubmitted ? (
-                <span className="text-green-600 font-medium">
-                  We'll reach out once your area is supported!
-                </span>
-              ) : (
-                'This address is not yet supported. Enter your email and we\'ll notify you when it becomes available.'
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {!waitlistSubmitted ? (
-            <div className="space-y-4 pt-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Address
-                </label>
-                <Input
-                  type="text"
-                  value={waitlistAddress}
-                  disabled
-                  className="bg-gray-50"
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Email Address
-                </label>
-                <Input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={waitlistEmail}
-                  onChange={(e) => setWaitlistEmail(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleWaitlistSubmit();
-                    }
-                  }}
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleWaitlistSubmit}
-                  disabled={isSubmittingWaitlist}
-                  className="flex-1"
-                >
-                  {isSubmittingWaitlist ? 'Joining...' : 'Join Waitlist'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleCloseWaitlistDialog}
-                  disabled={isSubmittingWaitlist}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="pt-4">
-              <Button onClick={handleCloseWaitlistDialog} className="w-full">
-                Close
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
