@@ -57,10 +57,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="HOCS Backend API", version="1.0.0", lifespan=lifespan)
 
 # CORS configuration
+# Allow both development and production origins
 origins = [
     "http://localhost:5173",  # Vite default dev server
     "http://localhost:5137",  # Vite dev server (alternate port)
     "http://localhost:3000",  # Common dev port
+    "https://homecostsaver.onrender.com",  # Production frontend
+    "https://hocs-frontend.onrender.com",  # Alternative production frontend URL
 ]
 
 app.add_middleware(
@@ -69,6 +72,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 

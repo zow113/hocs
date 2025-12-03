@@ -18,6 +18,10 @@ async function fetchApi<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   
+  console.log('[API] Making request to:', url);
+  console.log('[API] API_BASE_URL:', API_BASE_URL);
+  console.log('[API] Request options:', options);
+  
   try {
     const response = await fetch(url, {
       ...options,
@@ -27,15 +31,21 @@ async function fetchApi<T>(
       },
     });
 
+    console.log('[API] Response status:', response.status);
+    console.log('[API] Response ok:', response.ok);
+
     if (!response.ok) {
       const error: ApiError = await response.json().catch(() => ({
         detail: `HTTP error! status: ${response.status}`,
       }));
+      console.error('[API] Error response:', error);
       throw new Error(error.detail);
     }
 
     return await response.json();
   } catch (error) {
+    console.error('[API] Fetch error:', error);
+    console.error('[API] Error type:', error instanceof TypeError ? 'Network/CORS Error' : 'Other Error');
     if (error instanceof Error) {
       throw error;
     }

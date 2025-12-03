@@ -162,10 +162,16 @@ const Home = () => {
       return;
     }
 
+    console.log('[Waitlist] Submitting waitlist request');
+    console.log('[Waitlist] Email:', waitlistEmail);
+    console.log('[Waitlist] Address:', waitlistAddress);
+
     setIsSubmittingWaitlist(true);
     
     try {
       const response = await addToWaitlist(waitlistEmail, waitlistAddress);
+      
+      console.log('[Waitlist] Response received:', response);
       
       if (response.already_registered) {
         toast.info(response.message);
@@ -173,6 +179,8 @@ const Home = () => {
         setWaitlistSubmitted(true);
       }
     } catch (error) {
+      console.error('[Waitlist] Error details:', error);
+      console.error('[Waitlist] Error type:', error instanceof TypeError ? 'Network/CORS Error' : 'Other Error');
       const errorMessage = error instanceof Error ? error.message : 'Failed to join waitlist';
       toast.error(errorMessage);
       console.error('Error joining waitlist:', error);
