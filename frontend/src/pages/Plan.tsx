@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Mail, CheckCircle2, ArrowRight, Phone, Globe, ExternalLink } from 'lucide-react';
+import { Bird, Download, Mail, CheckCircle2, ArrowRight, Phone, Globe, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -158,11 +158,7 @@ const Plan = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <img 
-                src="https://chatgpt.com/backend-api/estuary/content?id=file_00000000b180722f86c605da4635c067&ts=490204&p=fs&cid=1&sig=8a2ae70cb23938dfdda1dec2201986521fbcf864658c8d2a447b2de7a9225766&v=0" 
-                alt="HOCS Logo" 
-                className="w-10 h-10 object-contain"
-              />
+              <Bird className="w-8 h-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">HOCS</h1>
             </div>
             <Button variant="outline" onClick={resetSession}>
