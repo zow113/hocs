@@ -116,7 +116,7 @@ const Diagnostic = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Savings & Programs</h2>
           <p className="text-gray-600 mb-4">{propertyData.address}</p>
           <p className="text-sm text-gray-700">
-            All available programs, rebates, and opportunities for your home. Start with free programs at the top, then work your way down as you track results.
+            Found available programs, rebates, and opportunities for your home. Start with free programs at the top, then work your way down as you track results.
           </p>
         </div>
 
