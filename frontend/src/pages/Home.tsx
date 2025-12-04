@@ -204,7 +204,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm relative z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -265,7 +265,12 @@ const Home = () => {
               Try: "5154 W 12th St, Los Angeles" or "5343 Janisann Ave, Culver City"
             </p>
           </div>
+        </div>
+      </div>
 
+      {/* Feature Cards Section */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="max-w-4xl mx-auto">
           {/* Feature Cards */}
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             <Card className="p-6 text-center hover:shadow-lg transition-shadow">
@@ -298,9 +303,13 @@ const Home = () => {
               </p>
             </Card>
           </div>
+        </div>
+      </div>
 
-          {/* Educational Note */}
-          <div className="mt-12 p-6 bg-white rounded-lg shadow-md max-w-3xl mx-auto">
+      {/* Educational Note Section */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="p-6 bg-white rounded-lg shadow-md max-w-3xl mx-auto">
             <h3 className="font-semibold text-lg mb-3 text-gray-900">How It Works</h3>
             <div className="text-left space-y-2 text-gray-700">
               <p><strong>1. Start Free:</strong> We prioritize no-cost programs like free energy audits and conservation kits</p>
@@ -311,6 +320,7 @@ const Home = () => {
           </div>
         </div>
       </div>
+
 
       {/* Waitlist Dialog */}
       <Dialog open={showWaitlistDialog} onOpenChange={setShowWaitlistDialog}>

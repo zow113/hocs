@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useProperty } from '@/context/PropertyContext';
 import { SavingsOpportunity } from '@/types/property';
 import { toast } from 'sonner';
+import { generatePdfReport } from '@/lib/api';
 
 interface TierGroup {
   tier: number;
@@ -21,13 +22,17 @@ interface TierGroup {
 
 const Plan = () => {
   const navigate = useNavigate();
-  const { propertyData, opportunities, resetSession } = useProperty();
+  const { propertyData, opportunities, sessionId, resetSession } = useProperty();
   const [tiers, setTiers] = useState<TierGroup[]>([]);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [optInUpdates, setOptInUpdates] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
+    // Scroll to top when component mounts
+    window.scrollTo(0, 0);
+    
     if (!propertyData || opportunities.length === 0) {
       navigate('/');
       return;
@@ -142,11 +147,38 @@ const Plan = () => {
     setOptInUpdates(false);
   };
 
-  const handleDownloadPDF = () => {
-    toast.success('PDF action plan is being generated...');
-    setTimeout(() => {
+  const handleDownloadPDF = async () => {
+    if (!sessionId) {
+      toast.error('Session not found. Please start a new search.');
+      return;
+    }
+
+    setIsDownloading(true);
+    toast.info('Generating your PDF action plan...');
+
+    try {
+      // Call the API to generate PDF
+      const pdfBlob = await generatePdfReport(sessionId);
+      
+      // Create a download link and trigger download
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `HOCS_Action_Plan_${propertyData?.address.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
       toast.success('PDF downloaded successfully!');
-    }, 2000);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      toast.error('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const totalPotentialSavings = opportunities.reduce((sum, opp) => sum + opp.annualSavings, 0);
@@ -180,9 +212,14 @@ const Plan = () => {
 
         {/* Action Buttons - Top */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-          <Button size="lg" onClick={handleDownloadPDF} className="px-8">
+          <Button
+            size="lg"
+            onClick={handleDownloadPDF}
+            className="px-8"
+            disabled={isDownloading}
+          >
             <Download className="mr-2 w-5 h-5" />
-            Download Action Plan
+            {isDownloading ? 'Generating PDF...' : 'Download Action Plan'}
           </Button>
 
           <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
@@ -270,9 +307,22 @@ const Plan = () => {
                   <li>
                     <strong>Set up your utility portals:</strong>
                     <ul className="list-disc list-inside ml-6 mt-1 space-y-1">
-                      <li>LADWP account: <a href="https://www.ladwp.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">ladwp.com</a> (electricity & water)</li>
+                      {propertyData.utilityProvider === 'LADWP' && (
+                        <li>LADWP account: <a href="https://www.ladwp.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">ladwp.com</a> (electricity & water)</li>
+                      )}
+                      {propertyData.utilityProvider === 'Pasadena Water & Power' && (
+                        <li>Pasadena Water & Power: <a href="https://www.cityofpasadena.net/water-and-power/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">cityofpasadena.net/water-and-power</a> (electricity & water)</li>
+                      )}
+                      {propertyData.utilityProvider === 'Glendale Water & Power' && (
+                        <li>Glendale Water & Power: <a href="https://www.glendaleca.gov/government/departments/glendale-water-power" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">glendaleca.gov/water-power</a> (electricity & water)</li>
+                      )}
+                      {propertyData.utilityProvider === 'Burbank Water & Power' && (
+                        <li>Burbank Water & Power: <a href="https://www.burbankwaterandpower.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">burbankwaterandpower.com</a> (electricity & water)</li>
+                      )}
+                      {propertyData.utilityProvider === 'Santa Monica Municipal Utilities' && (
+                        <li>Santa Monica Municipal Utilities: <a href="https://www.smgov.net/Departments/PublicWorks/ContentWater.aspx" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">smgov.net/water</a> (water)</li>
+                      )}
                       <li>SoCalGas account: <a href="https://www.socalgas.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">socalgas.com</a> (natural gas)</li>
-                      <li>Pasadena Water & Power: <a href="https://www.cityofpasadena.net/water-and-power/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">cityofpasadena.net/water-and-power</a></li>
                     </ul>
                   </li>
                   <li><strong>Download the last 12 months of bills</strong> (if available) to establish your baseline usage and costs</li>
@@ -386,39 +436,100 @@ const Plan = () => {
                   ⚡ Utility Providers
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-2">LADWP (Los Angeles)</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <span>(800) 342-5397</span>
+                  {propertyData.utilityProvider === 'LADWP' && (
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">LADWP (Los Angeles)</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <span>(800) 342-5397</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-gray-500" />
+                          <a href="https://www.ladwp.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                            ladwp.com <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        <p className="text-gray-600 mt-2">Energy efficiency programs, rebates, and billing</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-gray-500" />
-                        <a href="https://www.ladwp.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                          ladwp.com <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                      <p className="text-gray-600 mt-2">Energy efficiency programs, rebates, and billing</p>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-2">Pasadena Water & Power</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <span>(626) 744-4005</span>
+                  {propertyData.utilityProvider === 'Pasadena Water & Power' && (
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">Pasadena Water & Power</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <span>(626) 744-4005</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-gray-500" />
+                          <a href="https://www.cityofpasadena.net/water-and-power/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                            cityofpasadena.net/water-and-power <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        <p className="text-gray-600 mt-2">Energy audits, rebates, and conservation programs</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-gray-500" />
-                        <a href="https://www.cityofpasadena.net/water-and-power/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                          cityofpasadena.net/water-and-power <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                      <p className="text-gray-600 mt-2">Energy audits, rebates, and conservation programs</p>
                     </div>
-                  </div>
+                  )}
+
+                  {propertyData.utilityProvider === 'Glendale Water & Power' && (
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">Glendale Water & Power</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <span>(818) 548-2000</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-gray-500" />
+                          <a href="https://www.glendaleca.gov/government/departments/glendale-water-power" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                            glendaleca.gov/water-power <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        <p className="text-gray-600 mt-2">Energy efficiency programs, rebates, and billing</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {propertyData.utilityProvider === 'Burbank Water & Power' && (
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">Burbank Water & Power</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <span>(818) 238-3700</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-gray-500" />
+                          <a href="https://www.burbankwaterandpower.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                            burbankwaterandpower.com <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        <p className="text-gray-600 mt-2">Energy efficiency programs, rebates, and billing</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {propertyData.utilityProvider === 'Santa Monica Municipal Utilities' && (
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">Santa Monica Municipal Utilities</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <span>(310) 458-8224</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-gray-500" />
+                          <a href="https://www.smgov.net/Departments/PublicWorks/ContentWater.aspx" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                            smgov.net/water <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        <p className="text-gray-600 mt-2">Water conservation programs and billing</p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <h4 className="font-semibold text-gray-900 mb-2">SoCalGas</h4>
@@ -662,9 +773,14 @@ const Plan = () => {
 
         {/* Action Buttons - Bottom */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" onClick={handleDownloadPDF} className="px-8">
+          <Button
+            size="lg"
+            onClick={handleDownloadPDF}
+            className="px-8"
+            disabled={isDownloading}
+          >
             <Download className="mr-2 w-5 h-5" />
-            Download Action Plan
+            {isDownloading ? 'Generating PDF...' : 'Download Action Plan'}
           </Button>
 
           <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>

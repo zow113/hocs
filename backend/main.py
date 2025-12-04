@@ -61,6 +61,8 @@ app = FastAPI(title="HOCS Backend API", version="1.0.0", lifespan=lifespan)
 origins = [
     "http://localhost:5173",  # Vite default dev server
     "http://localhost:5137",  # Vite dev server (alternate port)
+    "http://localhost:5138",  # Vite dev server (alternate port)
+    "http://localhost:5139",  # Vite dev server (alternate port)
     "http://localhost:3000",  # Common dev port
     "https://homecostsaver.onrender.com",  # Production frontend (primary)
     "https://hocs-frontend.onrender.com",  # Alternative production frontend URL
