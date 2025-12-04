@@ -202,9 +202,9 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm relative z-10">
+      <header className="bg-white shadow-sm relative z-20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -218,58 +218,68 @@ const Home = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl font-bold text-gray-900 mb-6">
-            Home Ownership Cost Saver
-          </h2>
-          <p className="text-xl text-gray-600 mb-4">
-            Get personalized recommendations for no-cost and low-cost actions that deliver real savings.
-          </p>
-          <p className="text-lg text-blue-600 font-semibold mb-12">
-            "What gets measured, gets managed" - Start tracking your home's performance today.
-          </p>
-
-          {/* Search Box */}
-          <div className="relative max-w-2xl mx-auto mb-16">
-            <form onSubmit={(e) => { e.preventDefault(); handleAnalyze(); }} className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none z-10" />
-                <Input
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Enter your LA County home address..."
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !document.querySelector('.pac-container:hover')) {
-                      e.preventDefault();
-                      handleAnalyze();
-                    }
-                  }}
-                  className="pl-10 h-14 text-lg"
-                  autoComplete="off"
-                />
-              </div>
-              <Button
-                type="submit"
-                size="lg"
-                className="h-14 px-8"
-                disabled={isLoading || !address}
-              >
-                {isLoading ? 'Analyzing...' : 'Find Programs'}
-              </Button>
-            </form>
-            <p className="text-sm text-gray-500 mt-2 text-left">
-              Try: "5154 W 12th St, Los Angeles" or "5343 Janisann Ave, Culver City"
+      {/* Hero Section with Background Image */}
+      <div className="relative overflow-hidden">
+        {/* Background Image with Filter */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: 'url(/hero-background.jpg)',
+            filter: 'brightness(0.8) grayscale(0.2)',
+          }}
+        />
+        <div className="relative z-10 container mx-auto px-4 py-16">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-5xl font-bold text-white mb-6 drop-shadow-lg">
+              Home Ownership Cost Saver
+            </h2>
+            <p className="text-xl text-white mb-4 drop-shadow-md">
+              Get personalized recommendations for no-cost and low-cost actions that deliver real savings.
             </p>
+            <p className="text-lg text-white font-semibold mb-12 drop-shadow-md">
+              "What gets measured, gets managed" - Start tracking your home's performance today.
+            </p>
+
+            {/* Search Box */}
+            <div className="relative max-w-2xl mx-auto mb-16">
+              <form onSubmit={(e) => { e.preventDefault(); handleAnalyze(); }} className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none z-10" />
+                  <Input
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Enter your LA County home address..."
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !document.querySelector('.pac-container:hover')) {
+                        e.preventDefault();
+                        handleAnalyze();
+                      }
+                    }}
+                    className="pl-10 h-14 text-lg"
+                    autoComplete="off"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="h-14 px-8 bg-blue-600 hover:bg-blue-700"
+                  disabled={isLoading || !address}
+                >
+                  {isLoading ? 'Analyzing...' : 'Find Programs'}
+                </Button>
+              </form>
+              <p className="text-sm text-gray-200 mt-2 text-left drop-shadow">
+                Try: "5154 W 12th St, Los Angeles" or "5343 Janisann Ave, Culver City"
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Feature Cards Section */}
-      <div className="container mx-auto px-4 pb-16">
+      <div className="container mx-auto px-4 py-16 mt-4">
         <div className="max-w-4xl mx-auto">
           {/* Feature Cards */}
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
