@@ -62,7 +62,7 @@ origins = [
     "http://localhost:5173",  # Vite default dev server
     "http://localhost:5137",  # Vite dev server (alternate port)
     "http://localhost:3000",  # Common dev port
-    "https://homecostsaver.onrender.com",  # Production frontend
+    "https://homecostsaver.onrender.com",  # Production frontend (primary)
     "https://hocs-frontend.onrender.com",  # Alternative production frontend URL
 ]
 

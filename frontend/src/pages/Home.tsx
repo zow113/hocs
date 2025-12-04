@@ -262,7 +262,7 @@ const Home = () => {
               </Button>
             </form>
             <p className="text-sm text-gray-500 mt-2 text-left">
-              Try: "123 Main St, Pasadena" or "456 Oak Ave, Los Angeles"
+              Try: "5154 W 12th St, Los Angeles" or "5343 Janisann Ave, Culver City"
             </p>
           </div>
 
