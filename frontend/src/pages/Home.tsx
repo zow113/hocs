@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bird, Lightbulb, Gift, TrendingUp } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -18,6 +20,7 @@ const Home = () => {
   const [waitlistAddress, setWaitlistAddress] = useState('');
   const [isSubmittingWaitlist, setIsSubmittingWaitlist] = useState(false);
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  const [expandToCA, setExpandToCA] = useState(false);
   const navigate = useNavigate();
   const { setPropertyData, setOpportunities, setSessionId, resetSession } = useProperty();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -68,8 +71,14 @@ const Home = () => {
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
-    if (!isGoogleLoaded || !inputRef.current || autocompleteRef.current) {
+    if (!isGoogleLoaded || !inputRef.current) {
       return;
+    }
+
+    // Clear existing autocomplete when toggle changes
+    if (autocompleteRef.current) {
+      google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      autocompleteRef.current = null;
     }
 
     try {
@@ -79,13 +88,15 @@ const Home = () => {
         fields: ['formatted_address', 'address_components', 'geometry'],
       });
 
-      // Strictly bias results to Los Angeles County
-      const laCountyBounds = new google.maps.LatLngBounds(
-        new google.maps.LatLng(33.7037, -118.6682), // Southwest
-        new google.maps.LatLng(34.8233, -117.6462)  // Northeast
-      );
-      autocomplete.setBounds(laCountyBounds);
-      autocomplete.setOptions({ strictBounds: false }); // Allow manual entry but bias to LA County
+      if (!expandToCA) {
+        // Strictly bias results to Los Angeles County
+        const laCountyBounds = new google.maps.LatLngBounds(
+          new google.maps.LatLng(33.7037, -118.6682), // Southwest
+          new google.maps.LatLng(34.8233, -117.6462)  // Northeast
+        );
+        autocomplete.setBounds(laCountyBounds);
+        autocomplete.setOptions({ strictBounds: false }); // Allow manual entry but bias to LA County
+      }
 
       autocomplete.addListener('place_changed', () => {
         const place = autocomplete.getPlace();
@@ -94,23 +105,43 @@ const Home = () => {
           return;
         }
 
-        // Validate that the address is in Los Angeles County
-        const isLACounty = place.address_components.some(component => {
-          // Check for "Los Angeles County" or "Los Angeles" in administrative_area_level_2
-          return component.types.includes('administrative_area_level_2') &&
-                 (component.long_name === 'Los Angeles County' ||
-                  component.short_name === 'Los Angeles County');
-        });
+        // Validate based on toggle state
+        if (expandToCA) {
+          // Check if address is in California
+          const isCA = place.address_components.some(component => {
+            return component.types.includes('administrative_area_level_1') &&
+                   (component.short_name === 'CA' || component.long_name === 'California');
+          });
 
-        if (!isLACounty) {
-          // Show waitlist dialog for unsupported areas
-          setWaitlistAddress(place.formatted_address || '');
-          setShowWaitlistDialog(true);
-          setAddress('');
-          if (inputRef.current) {
-            inputRef.current.value = '';
+          if (!isCA) {
+            // Show waitlist dialog for non-California addresses
+            setWaitlistAddress(place.formatted_address || '');
+            setShowWaitlistDialog(true);
+            setAddress('');
+            if (inputRef.current) {
+              inputRef.current.value = '';
+            }
+            return;
           }
-          return;
+        } else {
+          // Validate that the address is in Los Angeles County
+          const isLACounty = place.address_components.some(component => {
+            // Check for "Los Angeles County" or "Los Angeles" in administrative_area_level_2
+            return component.types.includes('administrative_area_level_2') &&
+                   (component.long_name === 'Los Angeles County' ||
+                    component.short_name === 'Los Angeles County');
+          });
+
+          if (!isLACounty) {
+            // Show waitlist dialog for unsupported areas
+            setWaitlistAddress(place.formatted_address || '');
+            setShowWaitlistDialog(true);
+            setAddress('');
+            if (inputRef.current) {
+              inputRef.current.value = '';
+            }
+            return;
+          }
         }
 
         if (place.formatted_address) {
@@ -124,7 +155,7 @@ const Home = () => {
       console.error('Error initializing Google Places Autocomplete:', error);
       toast.error('Failed to initialize address autocomplete');
     }
-  }, [isGoogleLoaded]);
+  }, [isGoogleLoaded, expandToCA]);
 
   const handleAnalyze = async () => {
     if (!address) {
@@ -248,7 +279,7 @@ const Home = () => {
                   <Input
                     ref={inputRef}
                     type="text"
-                    placeholder="Enter your LA County home address..."
+                    placeholder={expandToCA ? "Enter your California home address..." : "Enter your LA County home address..."}
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     onKeyDown={(e) => {
@@ -271,7 +302,10 @@ const Home = () => {
                 </Button>
               </form>
               <p className="text-sm text-gray-200 mt-2 text-left drop-shadow">
-                Try: "5154 W 12th St, Los Angeles" or "5343 Janisann Ave, Culver City"
+                {expandToCA
+                  ? 'Try: "130 Fairmount Ave, Oakland"'
+                  : 'Try: "5154 W 12th St, Los Angeles" or "5343 Janisann Ave, Culver City"'
+                }
               </p>
             </div>
           </div>
@@ -407,6 +441,22 @@ const Home = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* California Toggle - At bottom of page */}
+      <div className="container mx-auto px-4 pb-16">
+        <div className="max-w-4xl mx-auto flex justify-center">
+          <div className="bg-white rounded-full shadow-lg px-6 py-3 flex items-center space-x-3 border border-gray-200">
+            <Label htmlFor="ca-toggle" className="text-sm font-medium text-gray-700 cursor-pointer">
+              Expand to all California (alpha)
+            </Label>
+            <Switch
+              id="ca-toggle"
+              checked={expandToCA}
+              onCheckedChange={setExpandToCA}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
