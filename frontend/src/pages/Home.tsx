@@ -303,7 +303,7 @@ const Home = () => {
                 <Button
                   type="submit"
                   size="lg"
-                  className="h-14 px-8 bg-blue-600 hover:bg-blue-700"
+                  className="h-14 px-8 bg-blue-600 hover:bg-blue-700 opacity-100"
                   disabled={isLoading || !address}
                 >
                   {isLoading ? 'Analyzing...' : 'Find Programs'}
