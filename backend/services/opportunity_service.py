@@ -13,9 +13,39 @@ def generate_opportunities(property_data: PropertyData) -> List[SavingsOpportuni
     """
     opportunities = []
     
+    # Detect if this is LA County based on utility provider
+    is_la_county = property_data.utilityProvider in [
+        "Pasadena Water & Power", "LADWP", "Glendale Water & Power",
+        "Burbank Water & Power", "Santa Monica Municipal Utilities"
+    ]
+    
     # NO-COST / LOW-COST OPPORTUNITIES (Prioritized)
     
-    # Free Home Energy Audit
+    # Free Home Energy Audit - Dynamic based on location
+    if is_la_county:
+        audit_next_steps = [
+            'Contact your utility provider to schedule free audit',
+            'Pasadena Water & Power: (626) 744-4005',
+            'LADWP: (800) 342-5397',
+            'Document current utility bills for comparison'
+        ]
+        audit_resources = [
+            OfficialResource(name='Pasadena Water & Power Energy Programs', url='https://www.cityofpasadena.net/water-and-power/energy-efficiency/', type='utility'),
+            OfficialResource(name='LADWP Energy Efficiency Programs', url='https://www.ladwp.com/ladwp/faces/ladwp/residential/r-savemoney/r-sm-rebatesandprograms', type='utility'),
+            OfficialResource(name='California Energy Commission', url='https://www.energy.ca.gov/programs-and-topics/programs/energy-efficiency', type='government')
+        ]
+    else:
+        audit_next_steps = [
+            f'Contact {property_data.utilityProvider} to schedule free audit',
+            'Check your utility provider website for energy efficiency programs',
+            'Document current utility bills for comparison',
+            'Visit California Energy Commission for statewide programs'
+        ]
+        audit_resources = [
+            OfficialResource(name='California Energy Commission', url='https://www.energy.ca.gov/programs-and-topics/programs/energy-efficiency', type='government'),
+            OfficialResource(name='Find Your Utility Provider Programs', url='https://www.cpuc.ca.gov/industries-and-topics/electrical-energy/electric-costs/energy-efficiency-ee', type='government')
+        ]
+    
     opportunities.append(SavingsOpportunity(
         id='energy-audit',
         category='energy',
@@ -32,21 +62,39 @@ def generate_opportunities(property_data: PropertyData) -> List[SavingsOpportuni
             'Qualify for additional rebates and incentives',
             'Track baseline energy usage for future improvements'
         ],
-        nextSteps=[
-            'Contact your utility provider to schedule free audit',
-            'Pasadena Water & Power: (626) 744-4005',
-            'LADWP: (800) 342-5397',
-            'Document current utility bills for comparison'
-        ],
+        nextSteps=audit_next_steps,
         methodology='Free energy audits identify an average of $300-500/year in savings opportunities. This is the foundation for measuring and managing your home\'s energy performance.',
-        officialResources=[
-            OfficialResource(name='Pasadena Water & Power Energy Programs', url='https://www.cityofpasadena.net/water-and-power/energy-efficiency/', type='utility'),
-            OfficialResource(name='LADWP Energy Efficiency Programs', url='https://www.ladwp.com/ladwp/faces/ladwp/residential/r-savemoney/r-sm-rebatesandprograms', type='utility'),
-            OfficialResource(name='California Energy Commission', url='https://www.energy.ca.gov/programs-and-topics/programs/energy-efficiency', type='government')
-        ]
+        officialResources=audit_resources
     ))
     
-    # Water Conservation Kit
+    # Water Conservation Kit - Dynamic based on location
+    if is_la_county:
+        water_next_steps = [
+            'Order free kit from SoCal Water$mart: bewaterwise.com',
+            'Install fixtures and note installation date',
+            'Compare next water bill to establish baseline savings',
+            'Track monthly water usage to measure impact'
+        ]
+        water_methodology = 'Metropolitan Water District provides free conservation kits. Average household saves 120 gallons/month = $120/year. What gets measured gets managed - track your water bills monthly.'
+        water_resources = [
+            OfficialResource(name='SoCal Water$mart (Metropolitan Water District)', url='https://www.bewaterwise.com/', type='utility'),
+            OfficialResource(name='LA County Water Conservation', url='https://dpw.lacounty.gov/wwd/web/Conservation/', type='government'),
+            OfficialResource(name='California Water Service', url='https://www.calwater.com/conservation/', type='utility')
+        ]
+    else:
+        water_next_steps = [
+            'Contact your local water district for free conservation kits',
+            'Check California Water Service for available programs',
+            'Install fixtures and note installation date',
+            'Track monthly water usage to measure impact'
+        ]
+        water_methodology = 'Many California water districts provide free conservation kits. Average household saves 120 gallons/month = $120/year. What gets measured gets managed - track your water bills monthly.'
+        water_resources = [
+            OfficialResource(name='California Water Service', url='https://www.calwater.com/conservation/', type='utility'),
+            OfficialResource(name='Save Our Water (Statewide)', url='https://saveourwater.com/', type='government'),
+            OfficialResource(name='California Department of Water Resources', url='https://water.ca.gov/Programs/Water-Use-And-Efficiency', type='government')
+        ]
+    
     opportunities.append(SavingsOpportunity(
         id='water-kit',
         category='water',
@@ -63,18 +111,9 @@ def generate_opportunities(property_data: PropertyData) -> List[SavingsOpportuni
             'Easy DIY installation in under 30 minutes',
             'Start tracking water savings right away'
         ],
-        nextSteps=[
-            'Order free kit from SoCal Water$mart: bewaterwise.com',
-            'Install fixtures and note installation date',
-            'Compare next water bill to establish baseline savings',
-            'Track monthly water usage to measure impact'
-        ],
-        methodology='Metropolitan Water District provides free conservation kits. Average household saves 120 gallons/month = $120/year. What gets measured gets managed - track your water bills monthly.',
-        officialResources=[
-            OfficialResource(name='SoCal Water$mart (Metropolitan Water District)', url='https://www.bewaterwise.com/', type='utility'),
-            OfficialResource(name='LA County Water Conservation', url='https://dpw.lacounty.gov/wwd/web/Conservation/', type='government'),
-            OfficialResource(name='California Water Service', url='https://www.calwater.com/conservation/', type='utility')
-        ]
+        nextSteps=water_next_steps,
+        methodology=water_methodology,
+        officialResources=water_resources
     ))
     
     # LED Lighting Conversion
@@ -137,7 +176,34 @@ def generate_opportunities(property_data: PropertyData) -> List[SavingsOpportuni
         ]
     ))
     
-    # Weatherization Program
+    # Weatherization Program - Dynamic based on location
+    if is_la_county:
+        weatherization_next_steps = [
+            'Check eligibility at lacounty.gov/weatherization',
+            'Gather income documentation for application',
+            'Schedule home assessment if qualified',
+            'Track utility bills before and after to measure impact'
+        ]
+        weatherization_methodology = 'LA County Weatherization Program provides free upgrades to eligible households. Average savings: $400/year. Document your baseline energy use to measure the improvement.'
+        weatherization_resources = [
+            OfficialResource(name='LA County Weatherization Program', url='https://dcba.lacounty.gov/weatherization/', type='government'),
+            OfficialResource(name='California Department of Community Services - Weatherization', url='https://www.csd.ca.gov/Pages/WeatherizationProgram.aspx', type='government'),
+            OfficialResource(name='U.S. Department of Energy - Weatherization', url='https://www.energy.gov/scep/wap/weatherization-assistance-program', type='government')
+        ]
+    else:
+        weatherization_next_steps = [
+            'Check eligibility at csd.ca.gov/weatherization',
+            'Contact your local Community Action Agency',
+            'Gather income documentation for application',
+            'Track utility bills before and after to measure impact'
+        ]
+        weatherization_methodology = 'California Weatherization Program provides free upgrades to eligible households statewide. Average savings: $400/year. Document your baseline energy use to measure the improvement.'
+        weatherization_resources = [
+            OfficialResource(name='California Department of Community Services - Weatherization', url='https://www.csd.ca.gov/Pages/WeatherizationProgram.aspx', type='government'),
+            OfficialResource(name='U.S. Department of Energy - Weatherization', url='https://www.energy.gov/scep/wap/weatherization-assistance-program', type='government'),
+            OfficialResource(name='Find Your Local Community Action Agency', url='https://www.csd.ca.gov/Pages/LocalOffices.aspx', type='government')
+        ]
+    
     opportunities.append(SavingsOpportunity(
         id='weatherization',
         category='energy',
@@ -154,18 +220,9 @@ def generate_opportunities(property_data: PropertyData) -> List[SavingsOpportuni
             'Professional installation at no cost',
             'Reduce heating/cooling costs by 20-30%'
         ],
-        nextSteps=[
-            'Check eligibility at lacounty.gov/weatherization',
-            'Gather income documentation for application',
-            'Schedule home assessment if qualified',
-            'Track utility bills before and after to measure impact'
-        ],
-        methodology='LA County Weatherization Program provides free upgrades to eligible households. Average savings: $400/year. Document your baseline energy use to measure the improvement.',
-        officialResources=[
-            OfficialResource(name='LA County Weatherization Program', url='https://dcba.lacounty.gov/weatherization/', type='government'),
-            OfficialResource(name='California Department of Community Services - Weatherization', url='https://www.csd.ca.gov/Pages/WeatherizationProgram.aspx', type='government'),
-            OfficialResource(name='U.S. Department of Energy - Weatherization', url='https://www.energy.gov/scep/wap/weatherization-assistance-program', type='government')
-        ]
+        nextSteps=weatherization_next_steps,
+        methodology=weatherization_methodology,
+        officialResources=weatherization_resources
     ))
     
     # MEDIUM-COST OPPORTUNITIES

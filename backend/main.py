@@ -147,14 +147,22 @@ def generate_mock_property_data(address: str) -> PropertyData:
     city = city_match.group(1) if city_match else "Los Angeles"
     
     # Determine utility provider based on city
-    utility_providers = {
+    # LA County specific utilities
+    la_county_utilities = {
         "Pasadena": "Pasadena Water & Power",
         "Los Angeles": "LADWP",
         "Glendale": "Glendale Water & Power",
         "Burbank": "Burbank Water & Power",
         "Santa Monica": "Santa Monica Municipal Utilities"
     }
-    utility_provider = utility_providers.get(city, "LADWP")
+    
+    # Check if it's an LA County city
+    if city in la_county_utilities:
+        utility_provider = la_county_utilities[city]
+    else:
+        # For non-LA County California addresses, use generic utility provider
+        # This will be detected by the opportunity service to provide generic CA resources
+        utility_provider = f"{city} Utilities"
     
     # Generate property data
     year_built = random.randint(1950, 2010)
