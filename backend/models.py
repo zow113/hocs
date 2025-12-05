@@ -55,7 +55,10 @@ class PropertyData(BaseModel):
     lastSalePrice: float = Field(alias='lastSalePrice')
     assessedValue: float = Field(alias='assessedValue')
     propertyTaxEstimate: float = Field(alias='propertyTaxEstimate')
-    utilityProvider: str = Field(alias='utilityProvider')
+    utilityProvider: str = Field(alias='utilityProvider')  # Kept for backward compatibility
+    electricProvider: Optional[str] = Field(default=None, alias='electricProvider')
+    gasProvider: Optional[str] = Field(default=None, alias='gasProvider')
+    waterProvider: Optional[str] = Field(default=None, alias='waterProvider')
     wildfireZone: Literal['Low', 'Medium', 'High'] = Field(alias='wildfireZone')
     roofAge: int = Field(alias='roofAge')
     solarFeasibilityScore: float = Field(alias='solarFeasibilityScore')
@@ -63,6 +66,7 @@ class PropertyData(BaseModel):
 
     class Config:
         populate_by_name = True
+        by_alias = True  # Serialize using aliases (camelCase)
 
 
 class Address(BaseModel):

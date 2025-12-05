@@ -235,17 +235,32 @@ def generate_report_pdf(session_data: Session) -> bytes:
     elements.append(Paragraph(tiers[0].description, body_style))
     elements.append(Spacer(1, 0.1*inch))
     
-    tier1_instructions = """
+    # Build utility-specific instructions for Tier 1
+    utility_provider = session_data.property_data.utilityProvider
+    utility_portal_text = ""
+    
+    if utility_provider == "LADWP":
+        utility_portal_text = "• LADWP account: ladwp.com (electricity & water)<br/>"
+    elif utility_provider == "Pasadena Water & Power":
+        utility_portal_text = "• Pasadena Water & Power: cityofpasadena.net/water-and-power<br/>"
+    elif utility_provider == "Glendale Water & Power":
+        utility_portal_text = "• Glendale Water & Power: glendaleca.gov/water-power<br/>"
+    elif utility_provider == "Burbank Water & Power":
+        utility_portal_text = "• Burbank Water & Power: burbankwaterandpower.com<br/>"
+    else:
+        utility_portal_text = f"• {utility_provider}: Check your utility provider's website<br/>"
+    
+    utility_portal_text += "       • SoCalGas account: socalgas.com (natural gas)<br/>"
+    
+    tier1_instructions = f"""
     <b>Action Steps:</b><br/>
     1. <b>Set up your utility portals:</b><br/>
-       • LADWP account: ladwp.com (electricity & water)<br/>
-       • SoCalGas account: socalgas.com (natural gas)<br/>
-       • Pasadena Water & Power: cityofpasadena.net/water-and-power<br/>
+       {utility_portal_text}
     2. <b>Download the last 12 months of bills</b> (if available) to establish your baseline usage and costs<br/>
     3. <b>Create a simple tracking spreadsheet</b> with columns for: Date, Electric Bill, Gas Bill, Water Bill, Total<br/>
     4. <b>Note your current monthly averages</b> before making any changes<br/>
     <br/>
-    <b>Why this matters:</b> This baseline data will help you measure the actual impact of every change you make. 
+    <b>Why this matters:</b> This baseline data will help you measure the actual impact of every change you make.
     Spend 30-60 minutes on this step before moving to Tier 2.
     """
     elements.append(Paragraph(tier1_instructions, small_style))

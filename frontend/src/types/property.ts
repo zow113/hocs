@@ -8,7 +8,10 @@ export interface PropertyData {
   lastSalePrice: number;
   assessedValue: number;
   propertyTaxEstimate: number;
-  utilityProvider: string;
+  utilityProvider: string;  // Kept for backward compatibility
+  electricProvider?: string;
+  gasProvider?: string;
+  waterProvider?: string;
   wildfireZone: 'Low' | 'Medium' | 'High';
   roofAge: number;
   solarFeasibilityScore: number;

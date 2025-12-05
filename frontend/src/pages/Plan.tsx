@@ -30,6 +30,14 @@ const Plan = () => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
+    // Debug logging
+    if (propertyData) {
+      console.log('Property Data:', {
+        electric: propertyData.electricProvider,
+        gas: propertyData.gasProvider,
+        water: propertyData.waterProvider
+      });
+    }
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
     
@@ -307,22 +315,56 @@ const Plan = () => {
                   <li>
                     <strong>Set up your utility portals:</strong>
                     <ul className="list-disc list-inside ml-6 mt-1 space-y-1">
-                      {propertyData.utilityProvider === 'LADWP' && (
-                        <li>LADWP account: <a href="https://www.ladwp.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">ladwp.com</a> (electricity & water)</li>
+                      {/* Electric Provider */}
+                      {propertyData.electricProvider && (
+                        <>
+                          {propertyData.electricProvider.includes('Los Angeles Department of Water and Power') && (
+                            <li>LADWP: <a href="https://www.ladwp.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">ladwp.com</a> (electricity & water)</li>
+                          )}
+                          {propertyData.electricProvider.includes('Southern California Edison') && (
+                            <li>Southern California Edison: <a href="https://www.sce.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">sce.com</a> (electricity)</li>
+                          )}
+                          {propertyData.electricProvider.includes('Pasadena') && (
+                            <li>Pasadena Water & Power: <a href="https://www.cityofpasadena.net/water-and-power/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">cityofpasadena.net/water-and-power</a> (electricity & water)</li>
+                          )}
+                          {propertyData.electricProvider.includes('Glendale') && (
+                            <li>Glendale Water & Power: <a href="https://www.glendaleca.gov/government/departments/glendale-water-power" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">glendaleca.gov/water-power</a> (electricity & water)</li>
+                          )}
+                          {propertyData.electricProvider.includes('Burbank') && (
+                            <li>Burbank Water & Power: <a href="https://www.burbankwaterandpower.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">burbankwaterandpower.com</a> (electricity & water)</li>
+                          )}
+                        </>
                       )}
-                      {propertyData.utilityProvider === 'Pasadena Water & Power' && (
-                        <li>Pasadena Water & Power: <a href="https://www.cityofpasadena.net/water-and-power/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">cityofpasadena.net/water-and-power</a> (electricity & water)</li>
+                      
+                      {/* Gas Provider */}
+                      {propertyData.gasProvider && (
+                        <>
+                          {propertyData.gasProvider.includes('Southern California Gas') && (
+                            <li>SoCalGas: <a href="https://www.socalgas.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">socalgas.com</a> (natural gas)</li>
+                          )}
+                          {propertyData.gasProvider.includes('Pacific Gas and Electric') && (
+                            <li>PG&E: <a href="https://www.pge.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">pge.com</a> (natural gas)</li>
+                          )}
+                          {propertyData.gasProvider.includes('San Diego Gas') && (
+                            <li>SDG&E: <a href="https://www.sdge.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">sdge.com</a> (natural gas)</li>
+                          )}
+                        </>
                       )}
-                      {propertyData.utilityProvider === 'Glendale Water & Power' && (
-                        <li>Glendale Water & Power: <a href="https://www.glendaleca.gov/government/departments/glendale-water-power" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">glendaleca.gov/water-power</a> (electricity & water)</li>
+                      
+                      {/* Water Provider - Only show if different from electric provider */}
+                      {propertyData.waterProvider && !propertyData.waterProvider.includes('Los Angeles Department of Water and Power') && !propertyData.waterProvider.includes('Pasadena') && !propertyData.waterProvider.includes('Glendale') && !propertyData.waterProvider.includes('Burbank') && (
+                        <>
+                          {propertyData.waterProvider.includes('Irvine Ranch') && (
+                            <li>Irvine Ranch Water District: <a href="https://www.irwd.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">irwd.com</a> (water)</li>
+                          )}
+                          {propertyData.waterProvider.includes('Metropolitan Water District') && (
+                            <li>Metropolitan Water District: <a href="https://www.bewaterwise.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">bewaterwise.com</a> (water conservation resources)</li>
+                          )}
+                          {propertyData.waterProvider.includes('San Diego County Water') && (
+                            <li>San Diego County Water Authority: <a href="https://www.sdcwa.org" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">sdcwa.org</a> (water)</li>
+                          )}
+                        </>
                       )}
-                      {propertyData.utilityProvider === 'Burbank Water & Power' && (
-                        <li>Burbank Water & Power: <a href="https://www.burbankwaterandpower.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">burbankwaterandpower.com</a> (electricity & water)</li>
-                      )}
-                      {propertyData.utilityProvider === 'Santa Monica Municipal Utilities' && (
-                        <li>Santa Monica Municipal Utilities: <a href="https://www.smgov.net/Departments/PublicWorks/ContentWater.aspx" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">smgov.net/water</a> (water)</li>
-                      )}
-                      <li>SoCalGas account: <a href="https://www.socalgas.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">socalgas.com</a> (natural gas)</li>
                     </ul>
                   </li>
                   <li><strong>Download the last 12 months of bills</strong> (if available) to establish your baseline usage and costs</li>
@@ -436,7 +478,8 @@ const Plan = () => {
                   ⚡ Utility Providers
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {propertyData.utilityProvider === 'LADWP' && (
+                  {/* Electric Provider */}
+                  {propertyData.electricProvider?.includes('Los Angeles Department of Water and Power') && (
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <h4 className="font-semibold text-gray-900 mb-2">LADWP (Los Angeles)</h4>
                       <div className="space-y-2 text-sm">
@@ -450,12 +493,31 @@ const Plan = () => {
                             ladwp.com <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
-                        <p className="text-gray-600 mt-2">Energy efficiency programs, rebates, and billing</p>
+                        <p className="text-gray-600 mt-2">Electricity, water, energy efficiency programs, rebates, and billing</p>
                       </div>
                     </div>
                   )}
 
-                  {propertyData.utilityProvider === 'Pasadena Water & Power' && (
+                  {propertyData.electricProvider?.includes('Southern California Edison') && (
+                    <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">Southern California Edison</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-500" />
+                          <span>(800) 655-4555</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-gray-500" />
+                          <a href="https://www.sce.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                            sce.com <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                        <p className="text-gray-600 mt-2">Electricity, energy efficiency programs, and rebates</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {propertyData.electricProvider?.includes('Pasadena') && (
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <h4 className="font-semibold text-gray-900 mb-2">Pasadena Water & Power</h4>
                       <div className="space-y-2 text-sm">
@@ -469,12 +531,12 @@ const Plan = () => {
                             cityofpasadena.net/water-and-power <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
-                        <p className="text-gray-600 mt-2">Energy audits, rebates, and conservation programs</p>
+                        <p className="text-gray-600 mt-2">Electricity, water, energy audits, rebates, and conservation programs</p>
                       </div>
                     </div>
                   )}
 
-                  {propertyData.utilityProvider === 'Glendale Water & Power' && (
+                  {propertyData.electricProvider?.includes('Glendale') && (
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <h4 className="font-semibold text-gray-900 mb-2">Glendale Water & Power</h4>
                       <div className="space-y-2 text-sm">
@@ -488,12 +550,12 @@ const Plan = () => {
                             glendaleca.gov/water-power <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
-                        <p className="text-gray-600 mt-2">Energy efficiency programs, rebates, and billing</p>
+                        <p className="text-gray-600 mt-2">Electricity, water, energy efficiency programs, rebates, and billing</p>
                       </div>
                     </div>
                   )}
 
-                  {propertyData.utilityProvider === 'Burbank Water & Power' && (
+                  {propertyData.electricProvider?.includes('Burbank') && (
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <h4 className="font-semibold text-gray-900 mb-2">Burbank Water & Power</h4>
                       <div className="space-y-2 text-sm">
@@ -507,63 +569,30 @@ const Plan = () => {
                             burbankwaterandpower.com <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
-                        <p className="text-gray-600 mt-2">Energy efficiency programs, rebates, and billing</p>
+                        <p className="text-gray-600 mt-2">Electricity, water, energy efficiency programs, rebates, and billing</p>
                       </div>
                     </div>
                   )}
 
-                  {propertyData.utilityProvider === 'Santa Monica Municipal Utilities' && (
+                  {/* Gas Provider */}
+                  {propertyData.gasProvider?.includes('Southern California Gas') && (
                     <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <h4 className="font-semibold text-gray-900 mb-2">Santa Monica Municipal Utilities</h4>
+                      <h4 className="font-semibold text-gray-900 mb-2">SoCalGas</h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4 text-gray-500" />
-                          <span>(310) 458-8224</span>
+                          <span>(877) 238-0092</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Globe className="w-4 h-4 text-gray-500" />
-                          <a href="https://www.smgov.net/Departments/PublicWorks/ContentWater.aspx" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                            smgov.net/water <ExternalLink className="w-3 h-3" />
+                          <a href="https://socalgas.com/save-money-and-energy/rebates-and-incentives" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                            socalgas.com/rebates <ExternalLink className="w-3 h-3" />
                           </a>
                         </div>
-                        <p className="text-gray-600 mt-2">Water conservation programs and billing</p>
+                        <p className="text-gray-600 mt-2">Natural gas rebates, smart thermostats, water heaters</p>
                       </div>
                     </div>
                   )}
-
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-2">SoCalGas</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <span>(877) 238-0092</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-gray-500" />
-                        <a href="https://socalgas.com/save-money-and-energy/rebates-and-incentives" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                          socalgas.com/rebates <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                      <p className="text-gray-600 mt-2">Natural gas rebates, smart thermostats, water heaters</p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-2">Metropolitan Water District</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-gray-500" />
-                        <span>(800) 342-5397</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-gray-500" />
-                        <a href="https://www.bewaterwise.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                          bewaterwise.com <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
-                      <p className="text-gray-600 mt-2">Free water conservation kits, turf removal rebates</p>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -732,6 +761,23 @@ const Plan = () => {
                         </a>
                       </div>
                       <p className="text-gray-600 mt-2">Local water conservation resources and programs</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-semibold text-gray-900 mb-2">Metropolitan Water District</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-500" />
+                        <span>(800) 342-5397</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-gray-500" />
+                        <a href="https://www.bewaterwise.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          bewaterwise.com <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                      <p className="text-gray-600 mt-2">Free water conservation kits, turf removal rebates</p>
                     </div>
                   </div>
                 </div>

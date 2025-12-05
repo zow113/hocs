@@ -168,10 +168,18 @@ const Home = () => {
     try {
       const response = await lookupProperty(address);
       
+      console.log('[Home] Full API response:', response);
+      console.log('[Home] Property from response:', response.property);
+      console.log('[Home] Electric provider from response:', response.property?.electricProvider);
+      console.log('[Home] Gas provider from response:', response.property?.gasProvider);
+      console.log('[Home] Water provider from response:', response.property?.waterProvider);
+      
       // Store session ID and property data
       setSessionId(response.session_id);
       setPropertyData(response.property);
       setOpportunities(response.opportunities);
+      
+      console.log('[Home] After setPropertyData called');
       
       toast.success('Property data retrieved successfully!');
       

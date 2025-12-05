@@ -23,6 +23,8 @@ from models import (
 from services.opportunity_service import generate_opportunities
 from services.pdf_service import generate_report_pdf
 from services.email_service import send_report_email
+from services.utility_lookup_service import UtilityLookupService
+from services.utility_program_service import UtilityProgramService
 
 # Load environment variables
 load_dotenv()
@@ -142,27 +144,55 @@ def generate_mock_property_data(address: str) -> PropertyData:
     seed = hash(address) % (2**32)
     random.seed(seed)
     
-    # Extract city from address if possible
+    # Extract city and county from address if possible
     city_match = re.search(r',\s*([^,]+),\s*CA', address)
-    city = city_match.group(1) if city_match else "Los Angeles"
+    city = city_match.group(1).strip() if city_match else "Los Angeles"
     
-    # Determine utility provider based on city
-    # LA County specific utilities
-    la_county_utilities = {
-        "Pasadena": "Pasadena Water & Power",
-        "Los Angeles": "LADWP",
-        "Glendale": "Glendale Water & Power",
-        "Burbank": "Burbank Water & Power",
-        "Santa Monica": "Santa Monica Municipal Utilities"
+    # Approximate coordinates for common cities (for utility lookup)
+    city_coords = {
+        "Los Angeles": (34.0522, -118.2437),
+        "Pasadena": (34.1478, -118.1445),
+        "Glendale": (34.1425, -118.2551),
+        "Burbank": (34.1808, -118.3090),
+        "Santa Monica": (34.0195, -118.4912),
+        "Irvine": (33.6846, -117.8265),
+        "San Diego": (32.7157, -117.1611),
+        "Sacramento": (38.5816, -121.4944),
     }
     
-    # Check if it's an LA County city
-    if city in la_county_utilities:
-        utility_provider = la_county_utilities[city]
-    else:
-        # For non-LA County California addresses, use generic utility provider
-        # This will be detected by the opportunity service to provide generic CA resources
-        utility_provider = f"{city} Utilities"
+    # Get coordinates for the city or use LA as default
+    lat, lon = city_coords.get(city, (34.0522, -118.2437))
+    
+    # Determine county based on city
+    county_map = {
+        "Los Angeles": "Los Angeles County",
+        "Pasadena": "Los Angeles County",
+        "Glendale": "Los Angeles County",
+        "Burbank": "Los Angeles County",
+        "Santa Monica": "Los Angeles County",
+        "Irvine": "Orange County",
+        "San Diego": "San Diego County",
+        "Sacramento": "Sacramento County",
+    }
+    county = county_map.get(city, "Los Angeles County")
+    
+    # Use utility lookup service to detect all utilities
+    utility_lookup = UtilityLookupService()
+    utilities = utility_lookup.lookup_utilities(
+        latitude=lat,
+        longitude=lon,
+        city=city,
+        county=county,
+        state="CA"
+    )
+    
+    # Extract utility provider names
+    electric_provider = utilities["electric"].name if utilities["electric"] else None
+    gas_provider = utilities["gas"].name if utilities["gas"] else None
+    water_provider = utilities["water"].name if utilities["water"] else None
+    
+    # Set legacy utilityProvider field (use electric provider as primary)
+    utility_provider = electric_provider or f"{city} Utilities"
     
     # Generate property data
     year_built = random.randint(1950, 2010)
@@ -202,6 +232,9 @@ def generate_mock_property_data(address: str) -> PropertyData:
         assessedValue=assessed_value,
         propertyTaxEstimate=property_tax_estimate,
         utilityProvider=utility_provider,
+        electricProvider=electric_provider,
+        gasProvider=gas_provider,
+        waterProvider=water_provider,
         wildfireZone=wildfire_zone,
         roofAge=roof_age,
         solarFeasibilityScore=solar_feasibility_score,
@@ -235,6 +268,9 @@ async def lookup_property(request: PropertyLookupRequest):
                 assessedValue=existing_property["assessed_value"],
                 propertyTaxEstimate=existing_property["property_tax_estimate"],
                 utilityProvider=existing_property["utility_provider"],
+                electricProvider=existing_property.get("electric_provider"),
+                gasProvider=existing_property.get("gas_provider"),
+                waterProvider=existing_property.get("water_provider"),
                 wildfireZone=existing_property["wildfire_zone"],
                 roofAge=existing_property["roof_age"],
                 solarFeasibilityScore=existing_property["solar_feasibility_score"],
@@ -256,6 +292,9 @@ async def lookup_property(request: PropertyLookupRequest):
                 "assessed_value": property_data.assessedValue,
                 "property_tax_estimate": property_data.propertyTaxEstimate,
                 "utility_provider": property_data.utilityProvider,
+                "electric_provider": property_data.electricProvider,
+                "gas_provider": property_data.gasProvider,
+                "water_provider": property_data.waterProvider,
                 "wildfire_zone": property_data.wildfireZone,
                 "roof_age": property_data.roofAge,
                 "solar_feasibility_score": property_data.solarFeasibilityScore,
@@ -284,11 +323,12 @@ async def lookup_property(request: PropertyLookupRequest):
         sessions_collection = db.sessions
         await sessions_collection.insert_one(session_doc)
         
+        # Convert to dict with aliases for JSON serialization
         return PropertyLookupResponse(
             property=property_data,
             opportunities=opportunities,
             session_id=session_id
-        )
+        ).model_dump(by_alias=True)
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error looking up property: {str(e)}")
@@ -433,6 +473,55 @@ async def email_report(request: EmailReportRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error sending email: {str(e)}")
+
+
+class UtilityLookupRequest(BaseModel):
+    """Request model for utility lookup"""
+    latitude: float
+    longitude: float
+    city: str = ""
+    county: str = ""
+    state: str = "CA"
+
+
+@app.post("/api/v1/utilities/lookup")
+async def lookup_utilities(request: UtilityLookupRequest):
+    """
+    Utility lookup endpoint
+    Returns utility providers and their programs for a given location
+    """
+    try:
+        # Initialize services
+        utility_lookup = UtilityLookupService()
+        program_service = UtilityProgramService()
+        
+        # Look up utilities for the address
+        utilities = utility_lookup.lookup_utilities(
+            latitude=request.latitude,
+            longitude=request.longitude,
+            city=request.city,
+            county=request.county,
+            state=request.state
+        )
+        
+        # Get utility information
+        utility_info = utility_lookup.get_utility_info(utilities)
+        
+        # Get programs for each utility
+        programs = program_service.get_all_programs_for_address(utilities)
+        
+        # Format programs for API response
+        formatted_programs = {}
+        for utility_type, program_list in programs.items():
+            formatted_programs[utility_type] = program_service.format_programs_for_api(program_list)
+        
+        return {
+            "utilities": utility_info,
+            "programs": formatted_programs
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error looking up utilities: {str(e)}")
 
 
 @app.post("/api/v1/waitlist")

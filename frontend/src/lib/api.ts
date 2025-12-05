@@ -47,7 +47,11 @@ async function fetchApi<T>(
       throw new Error(error.detail);
     }
 
-    return await response.json();
+    const jsonData = await response.json();
+    console.log('[API] Raw JSON response:', jsonData);
+    console.log('[API] Property keys in response:', jsonData.property ? Object.keys(jsonData.property) : 'no property');
+    
+    return jsonData;
   } catch (error) {
     console.error('[API] Fetch error:', error);
     console.error('[API] Error type:', error instanceof TypeError ? 'Network/CORS Error' : 'Other Error');
@@ -81,10 +85,26 @@ export async function lookupProperty(address: string): Promise<{
   property: any;
   opportunities: any[];
 }> {
-  return fetchApi(`/api/v1/properties/lookup`, {
+  const response = await fetchApi<{
+    session_id: string;
+    property: any;
+    opportunities: any[];
+  }>(`/api/v1/properties/lookup`, {
     method: 'POST',
     body: JSON.stringify({ address }),
   });
+  
+  console.log('[API] Property lookup response:', response);
+  console.log('[API] Response type:', typeof response);
+  console.log('[API] Response keys:', Object.keys(response));
+  console.log('[API] Property data:', response.property);
+  console.log('[API] Property type:', typeof response.property);
+  console.log('[API] Property keys:', response.property ? Object.keys(response.property) : 'no property');
+  console.log('[API] Electric provider:', response.property?.electricProvider);
+  console.log('[API] Gas provider:', response.property?.gasProvider);
+  console.log('[API] Water provider:', response.property?.waterProvider);
+  
+  return response;
 }
 
 /**

@@ -25,15 +25,32 @@ def generate_opportunities(property_data: PropertyData) -> List[SavingsOpportuni
     if is_la_county:
         audit_next_steps = [
             'Contact your utility provider to schedule free audit',
-            'Pasadena Water & Power: (626) 744-4005',
-            'LADWP: (800) 342-5397',
-            'Document current utility bills for comparison'
         ]
-        audit_resources = [
-            OfficialResource(name='Pasadena Water & Power Energy Programs', url='https://www.cityofpasadena.net/water-and-power/energy-efficiency/', type='utility'),
-            OfficialResource(name='LADWP Energy Efficiency Programs', url='https://www.ladwp.com/ladwp/faces/ladwp/residential/r-savemoney/r-sm-rebatesandprograms', type='utility'),
-            OfficialResource(name='California Energy Commission', url='https://www.energy.ca.gov/programs-and-topics/programs/energy-efficiency', type='government')
-        ]
+        
+        # Add utility-specific contact info based on actual provider
+        if property_data.utilityProvider == "Pasadena Water & Power":
+            audit_next_steps.append('Pasadena Water & Power: (626) 744-4005')
+        elif property_data.utilityProvider == "LADWP":
+            audit_next_steps.append('LADWP: (800) 342-5397')
+        elif property_data.utilityProvider == "Glendale Water & Power":
+            audit_next_steps.append('Glendale Water & Power: (818) 548-2000')
+        elif property_data.utilityProvider == "Burbank Water & Power":
+            audit_next_steps.append('Burbank Water & Power: (818) 238-3700')
+        
+        audit_next_steps.append('Document current utility bills for comparison')
+        
+        # Add utility-specific resources based on actual provider
+        audit_resources = []
+        if property_data.utilityProvider == "Pasadena Water & Power":
+            audit_resources.append(OfficialResource(name='Pasadena Water & Power Energy Programs', url='https://www.cityofpasadena.net/water-and-power/energy-efficiency/', type='utility'))
+        elif property_data.utilityProvider == "LADWP":
+            audit_resources.append(OfficialResource(name='LADWP Energy Efficiency Programs', url='https://www.ladwp.com/ladwp/faces/ladwp/residential/r-savemoney/r-sm-rebatesandprograms', type='utility'))
+        elif property_data.utilityProvider == "Glendale Water & Power":
+            audit_resources.append(OfficialResource(name='Glendale Water & Power Energy Programs', url='https://www.glendalewaterandpower.com/rebates-and-savings', type='utility'))
+        elif property_data.utilityProvider == "Burbank Water & Power":
+            audit_resources.append(OfficialResource(name='Burbank Water & Power Energy Programs', url='https://www.burbankwaterandpower.com/energy-efficiency', type='utility'))
+        
+        audit_resources.append(OfficialResource(name='California Energy Commission', url='https://www.energy.ca.gov/programs-and-topics/programs/energy-efficiency', type='government'))
     else:
         audit_next_steps = [
             f'Contact {property_data.utilityProvider} to schedule free audit',
